@@ -1,0 +1,143 @@
+# ==============================================================================
+# .gitignore for Sentiment & Emotional Trajectory Studio
+# Covers: Python ML, PyTorch, PyInstaller Desktop Builds, Android APK Toolchain
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# Python & Virtual Environments
+# ------------------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+develop-eggs/
+dist-eggs/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+env.bak/
+venv.bak/
+
+# ------------------------------------------------------------------------------
+# PyTorch, Transformers & Heavy ML Artifacts
+# ------------------------------------------------------------------------------
+# Checkpoints & intermediate optimizer/scheduler states (several GBs)
+models/**/checkpoints/
+models/**/checkpoint-*/
+*.pth
+*.pt
+optimizer.pt
+scheduler.pt
+rng_state.pth
+training_args.bin
+
+# Hugging Face cache
+.cache/
+hf_cache/
+
+# Raw dataset archives
+data/raw/*.tar.gz
+data/raw/*.zip
+data/raw/*.tar
+
+# ------------------------------------------------------------------------------
+# PyInstaller Desktop Executable Build Output
+# ------------------------------------------------------------------------------
+build/
+*.spec
+# Ignore large bundled desktop app directory and 1.4GB distribution zip
+dist/SentimentTrajectoryStudio/
+dist/*.zip
+
+# ------------------------------------------------------------------------------
+# Android Build Tools & Intermediate Files
+# ------------------------------------------------------------------------------
+# Downloaded standalone Android CLI tools (aapt2, r8, android.jar)
+build_tools/
+# Android intermediate build directories
+mobile/build/
+mobile/*.keystore
+mobile/*.jks
+*.flat
+*.dex
+.gradle/
+
+# Allow tracking the final lightweight Android APK if desired
+!dist/SentimentTrajectory.apk
+
+# ------------------------------------------------------------------------------
+# Testing & Code Quality
+# ------------------------------------------------------------------------------
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# ------------------------------------------------------------------------------
+# Environment Variables & Sensitive Credentials
+# ------------------------------------------------------------------------------
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# ------------------------------------------------------------------------------
+# Operating System & IDE Specific Files
+# ------------------------------------------------------------------------------
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Editor directories
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+*.sublime-project
+*.sublime-workspace
+
+# Logs
+*.log
+
+# Release signing material
+*.keystore
+*.jks
+*.p12
+*.pfx
+keystore.properties
+signing.properties
+
+# Generated Android release packages
+dist/*.apk
+dist/*.aab

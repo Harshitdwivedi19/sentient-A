@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy — Sentient Trajectory</title>
+  <style>
+    body {
+      background-color: #F8F6EF;
+      color: #292A2D;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.6;
+      margin: 0;
+      padding: 32px 16px;
+      display: flex;
+      justify-content: center;
+    }
+    .container {
+      max-width: 780px;
+      background: #FFFDF6;
+      border: 1px solid #E8E4D9;
+      border-radius: 16px;
+      padding: 36px 32px;
+      box-shadow: 0 4px 16px rgba(41, 42, 45, 0.04);
+    }
+    h1 {
+      font-size: 1.8rem;
+      margin-top: 0;
+      color: #292A2D;
+    }
+    h2 {
+      font-size: 1.25rem;
+      color: #292A2D;
+      border-bottom: 1px solid #E8E4D9;
+      padding-bottom: 6px;
+      margin-top: 28px;
+    }
+    p, li {
+      font-size: 0.95rem;
+      color: #4A4A47;
+    }
+    .badge {
+      display: inline-block;
+      background: rgba(90, 174, 145, 0.15);
+      color: #5AAE91;
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.82rem;
+      margin-bottom: 16px;
+    }
+    footer {
+      margin-top: 36px;
+      font-size: 0.8rem;
+      color: #777873;
+      text-align: center;
+      border-top: 1px solid #E8E4D9;
+      padding-top: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <span class="badge">🛡️ 100% On-Device Privacy Guaranteed</span>
+    <h1>Privacy Policy for Sentient Trajectory</h1>
+    <p><strong>Effective Date:</strong> October 24, 2026</p>
+
+    <p>Sentient Trajectory ("the Application", "we", "our") is designed as an explainable, research-grade natural language processing tool for analyzing conversation sentiment trajectories. We believe conversational data is strictly personal. This Privacy Policy outlines our comprehensive commitment to user privacy and data security.</p>
+
+    <h2>1. 100% On-Device Local Processing</h2>
+    <p>All natural language processing, sentiment polarity calculations, context-window aggregation, and turning-point analyses execute <strong>locally on your device</strong>. The Application operates independently without transmitting conversation text, messages, speaker identities, timestamps, or analysis results to any remote server or third-party cloud service.</p>
+
+    <h2>2. Information We Do NOT Collect</h2>
+    <p>We do <strong>not</strong> collect, store, monetize, or transmit:</p>
+    <ul>
+      <li>Personal Identifiable Information (PII) such as names, phone numbers, or email addresses.</li>
+      <li>Contents of your pasted conversation text or imported WhatsApp <code>.txt</code> chat logs.</li>
+      <li>Calculated sentiment scores, turning-point locations, or generated narrative reports.</li>
+      <li>Device identifiers, geolocation data, contacts, or browsing history.</li>
+    </ul>
+
+    <h2>3. File Access & WhatsApp Chat Import</h2>
+    <p>When you choose to analyze an exported WhatsApp chat file or text document, the file is read in volatile device memory (RAM) solely for the duration of turn parsing and scoring. No files are uploaded externally, and no other files or directories on your device are read or modified.</p>
+
+    <h2>4. Third-Party Analytics & Advertising</h2>
+    <p>The Application contains <strong>no advertising SDKs, no behavioral tracking frameworks, and no telemetry software</strong>. We do not profile users or monitor user activity.</p>
+
+    <h2>5. Defensive Data Export (Formula-Injection Defenses)</h2>
+    <p>When you export analytical records to CSV, the Application incorporates defensive sanitization (Risk #87) by prepending dangerous formula prefixes (<code>=</code>, <code>+</code>, <code>-</code>, <code>@</code>) with an apostrophe (<code>'</code>) to prevent spreadsheet code injection vulnerabilities.</p>
+
+    <h2>6. Contact</h2>
+    <p>For questions regarding this policy or the mathematical methodology of the application, please consult our public project repository.</p>
+
+    <footer>
+      Sentient Trajectory &bull; Explainable Conversation-Level Sentiment Analysis
+    </footer>
+  </div>
+</body>
+</html>

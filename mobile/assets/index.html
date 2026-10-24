@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Sentiment Trajectory Analysis — Explainable AI</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Top Header -->
+    <header class="app-header">
+      <div class="header-branding">
+        <img src="logo.png" alt="Logo" class="app-logo">
+        <div>
+          <h1 class="app-title">Sentient Trajectory</h1>
+          <p class="app-subtitle">Understand sentiment changes across conversations</p>
+        </div>
+      </div>
+      <span class="status-pill status-ready" id="connStatus">Ready</span>
+    </header>
+
+    <!-- First-Use Onboarding Banner (Dismissible) -->
+    <div id="onboardingBanner" class="onboarding-card">
+      <div class="onboarding-content">
+        <strong>👋 New to Sentiment Trajectory Analysis?</strong>
+        <p>Explore how model-predicted sentiment shifts across messages, and inspect evidence-grounded turning points.</p>
+        <div class="onboarding-actions">
+          <button id="onboardingDemoBtn" class="btn-xs-primary">Try Demo Dialogue</button>
+          <button id="onboardingDismissBtn" class="btn-xs-subtle">Got it</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4 Main Navigation Tabs -->
+    <nav class="nav-tabs">
+      <button class="nav-btn active" data-tab="tab-overview">🏠 Overview</button>
+      <button class="nav-btn" data-tab="tab-analyze">🔬 Analyze</button>
+      <button class="nav-btn" data-tab="tab-results">📊 Results</button>
+      <button class="nav-btn" data-tab="tab-guide">📖 Guide</button>
+    </nav>
+
+    <!-- Main Container -->
+    <main class="tab-content">
+      
+      <!-- ================================================================= -->
+      <!-- TAB 1: OVERVIEW / HOME                                            -->
+      <!-- ================================================================= -->
+      <section id="tab-overview" class="tab-pane active">
+        <div class="card hero-card">
+          <h2 class="hero-title">Welcome to Sentiment Trajectory Analysis</h2>
+          <p class="hero-desc">
+            This tool analyzes the sentiment expressed in conversation messages, visualizes how model-predicted
+            sentiment changes over time, and highlights notable shifts. It provides an evidence-based summary
+            to help users explore conversational patterns.
+          </p>
+          <div class="hero-actions">
+            <button id="overviewStartBtn" class="btn-primary">🚀 Analyze a Conversation</button>
+            <button id="overviewDemoBtn" class="btn-secondary">💡 Try Demo Dialogue</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <label class="card-title">How It Works: 5-Step Workflow</label>
+          <div class="workflow-list">
+            <div class="workflow-step">
+              <span class="step-badge">1</span>
+              <div>
+                <strong>Provide Conversation</strong>
+                <p>Paste text, upload an exported WhatsApp chat (.txt), or choose a benchmark sample.</p>
+              </div>
+            </div>
+            <div class="workflow-step">
+              <span class="step-badge">2</span>
+              <div>
+                <strong>Review & Prepare</strong>
+                <p>Verify parsed turns, speakers, and message boundaries before running inference.</p>
+              </div>
+            </div>
+            <div class="workflow-step">
+              <span class="step-badge">3</span>
+              <div>
+                <strong>Run Sentiment Model</strong>
+                <p>Classify turn probabilities using RoBERTa Context-Aware or Baseline TF-IDF.</p>
+              </div>
+            </div>
+            <div class="workflow-step">
+              <span class="step-badge">4</span>
+              <div>
+                <strong>Explore Trajectory Curve</strong>
+                <p>Inspect continuous polarity waveform, shaded sentiment zones, and turning points.</p>
+              </div>
+            </div>
+            <div class="workflow-step">
+              <span class="step-badge">5</span>
+              <div>
+                <strong>Evidence & Export</strong>
+                <p>Read the non-causal explanation report and export data with formula-injection defenses.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card notice-card">
+          <label class="card-title">⚖️ Scientific Epistemic Boundary</label>
+          <p class="notice-text">
+            • Polarity scores are model-derived indicators (s_t = P(pos) - P(neg)), NOT direct biological or clinical emotion.<br>
+            • An algorithmic turning point denotes an observed shift in expressed language, not a proven psychological cause.
+          </p>
+        </div>
+      </section>
+
+      <!-- ================================================================= -->
+      <!-- TAB 2: ANALYZE CONVERSATION (STEPPED WORKSPACE)                   -->
+      <!-- ================================================================= -->
+      <section id="tab-analyze" class="tab-pane">
+        <!-- Step 1: Input -->
+        <div class="card">
+          <div class="step-header">
+            <span class="step-num">Step 1</span>
+            <label class="card-title">Provide Your Conversation</label>
+          </div>
+          <p class="step-desc">Enter one message per line. Use 'Speaker: Message' format if speaker names are known.</p>
+
+          <div class="mode-selector">
+            <label class="mode-pill"><input type="radio" name="inputMode" value="sample" checked> Demo Sample</label>
+            <label class="mode-pill"><input type="radio" name="inputMode" value="whatsapp"> WhatsApp .txt</label>
+            <label class="mode-pill"><input type="radio" name="inputMode" value="paste"> Paste Text</label>
+          </div>
+
+          <div id="sampleSelectorGroup" class="form-group">
+            <label for="sampleSelect">Select Benchmark Dialogue:</label>
+            <select id="sampleSelect" class="form-control">
+              <option value="conflict_recon">Conflict to Reconciliation (De-escalation)</option>
+              <option value="whatsapp_incident">WhatsApp Incident & Rapid Fix</option>
+              <option value="meld_friends">MELD Dialogue: Empathy & Support</option>
+            </select>
+          </div>
+
+          <div id="fileUploadGroup" class="form-group hidden">
+            <label for="waFileInput">Upload WhatsApp Export (.txt):</label>
+            <input type="file" id="waFileInput" accept=".txt" class="file-input">
+            <p class="hint-text">Export from WhatsApp: Chat > More > Export Chat (Without Media).</p>
+          </div>
+
+          <div id="textInputGroup" class="form-group">
+            <label for="chatTextInput">Conversation Messages:</label>
+            <textarea id="chatTextInput" class="form-control text-area" rows="7" placeholder="Speaker: Message&#10;Alice: Hello&#10;Bob: Hi there"></textarea>
+          </div>
+        </div>
+
+        <!-- Step 2: Review & Prepare -->
+        <div class="card">
+          <div class="step-header">
+            <span class="step-num">Step 2</span>
+            <label class="card-title">Review & Prepare</label>
+          </div>
+          <p class="step-desc">Confirm that turns and speakers were parsed accurately before running analysis.</p>
+
+          <div class="preview-stats-bar">
+            <span id="previewStatsBadge" class="stats-badge">Parsed: 0 Messages | 0 Speakers</span>
+            <button id="refreshPreviewBtn" class="btn-xs-subtle">🔄 Refresh</button>
+          </div>
+
+          <div id="previewTableContainer" class="preview-table-container">
+            <table class="preview-table" id="previewTable">
+              <thead>
+                <tr><th>#</th><th>Speaker</th><th>Message Preview</th></tr>
+              </thead>
+              <tbody id="previewTbody">
+                <tr><td colspan="3" class="text-center text-muted">No messages detected yet.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Step 3: Configure Analysis (Progressive Disclosure) -->
+        <div class="card">
+          <div class="step-header">
+            <span class="step-num">Step 3</span>
+            <label class="card-title">Configure Settings</label>
+            <button id="toggleAdvBtn" class="btn-xs-subtle">⚙️ Options ▼</button>
+          </div>
+
+          <div class="form-group">
+            <label for="modelSelect">Model Architecture:</label>
+            <select id="modelSelect" class="form-control">
+              <option value="roberta_context">RoBERTa Context-Aware (Recommended)</option>
+              <option value="roberta_independent">RoBERTa Independent</option>
+              <option value="baseline">TF-IDF Baseline (Fast)</option>
+            </select>
+          </div>
+
+          <div id="advancedOptionsContainer" class="advanced-options hidden">
+            <div class="slider-group">
+              <div class="slider-header">
+                <span>Turning-Point Sensitivity (τ):</span>
+                <strong id="tauDisplay">0.40</strong>
+              </div>
+              <input type="range" id="tauRange" min="0.1" max="0.9" step="0.05" value="0.4" class="slider">
+              <p class="hint-text">Minimum score shift |Δs| required to flag a candidate shift.</p>
+            </div>
+
+            <div class="slider-group">
+              <div class="slider-header">
+                <span>Context Window Length (k):</span>
+                <strong id="kDisplay">3 turns</strong>
+              </div>
+              <input type="range" id="kRange" min="0" max="5" step="1" value="3" class="slider">
+              <p class="hint-text">Number of preceding turns prepended to the current message.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 4: Run Analysis Action -->
+        <button id="runAnalysisBtn" class="btn-primary btn-run">
+          <span>🚀 Run Trajectory Analysis</span>
+        </button>
+        <p id="staleNotice" class="stale-notice hidden">⚠️ Input text was modified. Results on the dashboard are out of date.</p>
+      </section>
+
+      <!-- ================================================================= -->
+      <!-- TAB 3: RESULTS DASHBOARD                                          -->
+      <!-- ================================================================= -->
+      <section id="tab-results" class="tab-pane">
+        <!-- Section A: Summary Ribbon -->
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <span class="kpi-label">Analyzed Turns</span>
+            <span class="kpi-val" id="kpiTurns">0</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label">Mean Polarity</span>
+            <span class="kpi-val" id="kpiMean">0.00</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label">Net Drift (Δs)</span>
+            <span class="kpi-val" id="kpiDrift">0.00</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label">Volatility (σ)</span>
+            <span class="kpi-val" id="kpiVol">0.00</span>
+          </div>
+        </div>
+
+        <!-- Section B: Trajectory Waveform Card -->
+        <div class="card chart-card">
+          <div class="chart-header">
+            <h3>Emotional Polarity Waveform</h3>
+            <span class="legend-badge">s_t = P(pos) - P(neg)</span>
+          </div>
+          
+          <canvas id="trajectoryCanvas" width="380" height="230"></canvas>
+          
+          <div class="chart-legend">
+            <span class="leg-item"><span class="dot dot-pos"></span> Positive (> +0.15)</span>
+            <span class="leg-item"><span class="dot dot-neu"></span> Neutral (s=0)</span>
+            <span class="leg-item"><span class="dot dot-neg"></span> Negative (< -0.15)</span>
+          </div>
+
+          <!-- Expandable How to Read -->
+          <details class="chart-help-details">
+            <summary class="chart-help-summary">ℹ️ How to read this trajectory chart</summary>
+            <div class="chart-help-body">
+              <p>• <strong>Horizontal axis:</strong> Message turn order in conversation (t = 0, 1, 2...).</p>
+              <p>• <strong>Vertical axis:</strong> Polarity score in [-1.0, +1.0]. Values above +0.15 indicate positive prediction; values below -0.15 indicate negative prediction.</p>
+              <p>• <strong>Zero baseline:</strong> Dashed line represents neutral equilibrium or balanced uncertainty.</p>
+              <p>• <strong>Star markers:</strong> Highlight candidate turning points where score shift |Δs| >= τ.</p>
+            </div>
+          </details>
+        </div>
+
+        <!-- Section C: Sentiment Class Distribution -->
+        <div class="card">
+          <label class="card-title">Sentiment Category Distribution</label>
+          <div class="dist-bar-container">
+            <div id="distPositiveBar" class="dist-seg dist-pos" style="width: 33%;">Positive</div>
+            <div id="distNeutralBar" class="dist-seg dist-neu" style="width: 34%;">Neutral</div>
+            <div id="distNegativeBar" class="dist-seg dist-neg" style="width: 33%;">Negative</div>
+          </div>
+          <div class="dist-labels">
+            <span id="distPosLabel">Positive: 0 (0%)</span>
+            <span id="distNeuLabel">Neutral: 0 (0%)</span>
+            <span id="distNegLabel">Negative: 0 (0%)</span>
+          </div>
+        </div>
+
+        <!-- Section D: Filterable Message Explorer -->
+        <div class="card">
+          <div class="chat-header-bar">
+            <label class="card-title">Message Explorer</label>
+            <div class="chat-filters">
+              <button class="filter-pill active" data-filter="all">All</button>
+              <button class="filter-pill" data-filter="positive">Pos</button>
+              <button class="filter-pill" data-filter="neutral">Neu</button>
+              <button class="filter-pill" data-filter="negative">Neg</button>
+              <button class="filter-pill" data-filter="shifts">⚡ Shifts</button>
+            </div>
+          </div>
+
+          <div class="chat-stream" id="chatStream">
+            <p class="empty-state">Run an analysis to inspect conversation turns.</p>
+          </div>
+        </div>
+
+        <!-- Section E: Candidate Turning Points -->
+        <div class="card">
+          <label class="card-title">Candidate Shift Events</label>
+          <div id="tpContainer" class="tp-list">
+            <p class="empty-state">No candidate turning points detected.</p>
+          </div>
+        </div>
+
+        <!-- Section F: Evidence Report -->
+        <div class="card">
+          <div class="report-header">
+            <label class="card-title">Evidence-Grounded Report</label>
+            <button id="copyReportBtn" class="btn-xs-subtle">📋 Copy Report</button>
+          </div>
+          <pre id="reportPre" class="report-box">Run an analysis to generate the narrative report.</pre>
+        </div>
+
+        <!-- Section G: Export Center -->
+        <div class="card">
+          <label class="card-title">Data & Report Exports</label>
+          <p class="hint-text">All exports include formula-injection protections (Risk #87) and stay on your local device.</p>
+          <div class="export-btn-grid">
+            <button id="exportCsvBtn" class="btn-secondary">💾 Export CSV</button>
+            <button id="exportReportBtn" class="btn-secondary">📄 Export Report (.md)</button>
+            <button id="exportJsonBtn" class="btn-secondary">📊 Export JSON</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================= -->
+      <!-- TAB 4: BUILT-IN GUIDE & HELP                                      -->
+      <!-- ================================================================= -->
+      <section id="tab-guide" class="tab-pane">
+        <div class="card guide-card">
+          <h2 class="guide-title">Sentiment Trajectory Analysis Guide</h2>
+          
+          <div class="guide-section">
+            <h3>1. What does this application do?</h3>
+            <p><strong>Sentiment analysis:</strong> Predicts whether an individual message expresses positive, neutral, or negative sentiment.</p>
+            <p><strong>Trajectory analysis:</strong> Models how those sentiment predictions evolve over time across sequential messages in a conversation.</p>
+          </div>
+
+          <div class="guide-section">
+            <h3>2. Key Concepts & Formulas</h3>
+            <p>• <strong>Polarity Score (s_t):</strong> Mathematical score defined as <code>s_t = P(positive) - P(negative)</code> in range [-1.0, +1.0].</p>
+            <p>• <strong>Context Window (k):</strong> Preceding conversational turns prepended to the target utterance to give the Transformer conversational memory.</p>
+            <p>• <strong>Candidate Turning Point:</strong> An inflection point where turn-to-turn score change <code>|Δs| >= τ</code> or where a sign reversal across neutral occurs.</p>
+            <p>• <strong>Volatility (σ):</strong> Standard deviation of score changes (Δs) across the conversation.</p>
+          </div>
+
+          <div class="guide-section">
+            <h3>3. Scientific Accuracy & Limitations</h3>
+            <p>• Polarity scores are model-derived indicators, NOT direct measurements of human internal emotions.</p>
+            <p>• Sarcasm, cultural idioms, and non-verbal cues may affect model classification.</p>
+            <p>• An identified turning point is an algorithmic flag, not proof of real-world interpersonal conflict or intent.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

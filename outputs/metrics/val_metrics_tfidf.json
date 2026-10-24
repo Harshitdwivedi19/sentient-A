@@ -1,0 +1,101 @@
+{
+  "best_configuration": "bigram",
+  "configurations": {
+    "unigram": {
+      "model_name": "TF-IDF_LogReg_unigram",
+      "split_name": "val",
+      "accuracy": 0.5194,
+      "macro_f1": 0.5054,
+      "weighted_f1": 0.521,
+      "per_class": {
+        "negative": {
+          "precision": 0.5373,
+          "recall": 0.5148,
+          "f1": 0.5258,
+          "support": 406
+        },
+        "neutral": {
+          "precision": 0.5724,
+          "recall": 0.5553,
+          "f1": 0.5637,
+          "support": 470
+        },
+        "positive": {
+          "precision": 0.4015,
+          "recall": 0.4549,
+          "f1": 0.4266,
+          "support": 233
+        }
+      },
+      "confusion_matrix": [
+        [
+          209,
+          124,
+          73
+        ],
+        [
+          124,
+          261,
+          85
+        ],
+        [
+          56,
+          71,
+          106
+        ]
+      ],
+      "calibration": {
+        "brier_score": 0.5854,
+        "expected_calibration_error": 0.028
+      }
+    },
+    "bigram": {
+      "model_name": "TF-IDF_LogReg_bigram",
+      "split_name": "val",
+      "accuracy": 0.532,
+      "macro_f1": 0.5158,
+      "weighted_f1": 0.5321,
+      "per_class": {
+        "negative": {
+          "precision": 0.5349,
+          "recall": 0.5099,
+          "f1": 0.5221,
+          "support": 406
+        },
+        "neutral": {
+          "precision": 0.5813,
+          "recall": 0.5936,
+          "f1": 0.5874,
+          "support": 470
+        },
+        "positive": {
+          "precision": 0.4298,
+          "recall": 0.4464,
+          "f1": 0.4379,
+          "support": 233
+        }
+      },
+      "confusion_matrix": [
+        [
+          207,
+          125,
+          74
+        ],
+        [
+          127,
+          279,
+          64
+        ],
+        [
+          53,
+          76,
+          104
+        ]
+      ],
+      "calibration": {
+        "brier_score": 0.5745,
+        "expected_calibration_error": 0.0168
+      }
+    }
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "train": {
+    "split_name": "train",
+    "total_utterances": 9989,
+    "total_dialogues": 1038,
+    "turns_per_dialogue": {
+      "min": 1,
+      "max": 24,
+      "mean": 9.62,
+      "median": 9.0,
+      "std": 5.85
+    },
+    "class_counts": {
+      "neutral": 4710,
+      "negative": 2945,
+      "positive": 2334
+    },
+    "class_percentages": {
+      "neutral": 47.15,
+      "negative": 29.48,
+      "positive": 23.37
+    }
+  },
+  "val": {
+    "split_name": "val",
+    "total_utterances": 1109,
+    "total_dialogues": 114,
+    "turns_per_dialogue": {
+      "min": 1,
+      "max": 23,
+      "mean": 9.73,
+      "median": 10.0,
+      "std": 5.46
+    },
+    "class_counts": {
+      "neutral": 470,
+      "negative": 406,
+      "positive": 233
+    },
+    "class_percentages": {
+      "neutral": 42.38,
+      "negative": 36.61,
+      "positive": 21.01
+    }
+  },
+  "test": {
+    "split_name": "test",
+    "total_utterances": 2610,
+    "total_dialogues": 280,
+    "turns_per_dialogue": {
+      "min": 1,
+      "max": 33,
+      "mean": 9.32,
+      "median": 9.0,
+      "std": 5.71
+    },
+    "class_counts": {
+      "neutral": 1256,
+      "negative": 833,
+      "positive": 521
+    },
+    "class_percentages": {
+      "neutral": 48.12,
+      "negative": 31.92,
+      "positive": 19.96
+    }
+  }
+}

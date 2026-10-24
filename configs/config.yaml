@@ -1,0 +1,49 @@
+project:
+  name: "conversation-sentiment-trajectory"
+  seed: 42
+
+paths:
+  raw_data_dir: "data/raw"
+  processed_data_dir: "data/processed"
+  models_dir: "models"
+  metrics_dir: "outputs/metrics"
+  predictions_dir: "outputs/predictions"
+  figures_dir: "outputs/figures"
+
+dataset:
+  name: "MELD"
+  urls:
+    train: "https://raw.githubusercontent.com/declare-lab/MELD/master/data/MELD/train_sent_emo.csv"
+    val: "https://raw.githubusercontent.com/declare-lab/MELD/master/data/MELD/dev_sent_emo.csv"
+    test: "https://raw.githubusercontent.com/declare-lab/MELD/master/data/MELD/test_sent_emo.csv"
+  label_mapping:
+    negative: 0
+    neutral: 1
+    positive: 2
+  target_names: ["negative", "neutral", "positive"]
+
+models:
+  baseline_tfidf:
+    ngram_range: [1, 2]
+    max_features: 10000
+    c_regularization: 1.0
+  roberta:
+    pretrained_model_name: "roberta-base"
+    max_length: 128
+    batch_size: 16
+    eval_batch_size: 32
+    learning_rate: 2.0e-5
+    weight_decay: 0.01
+    warmup_ratio: 0.1
+    num_train_epochs: 3
+    gradient_accumulation_steps: 1
+    fp16: false  # Auto-enabled when CUDA is present
+  context:
+    default_window_size: 3
+    ablation_windows: [0, 1, 3, 5]
+    include_speaker: true
+    separator_token: " </s> "
+
+trajectory:
+  polarity_formula: "P(positive) - P(negative)"
+  turning_point_threshold: 0.5
