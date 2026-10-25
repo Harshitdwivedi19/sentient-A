@@ -31,14 +31,16 @@ jobs:
 
       - name: Build sdist and wheel
         run: |
-          python -m build
+          mkdir -p pypi_dist
+          python -m build --outdir pypi_dist/
 
       - name: Verify package archives
         run: |
-          twine check dist/*
+          twine check pypi_dist/*
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           password: ${{ secrets.PYPI_API_TOKEN }}
+          packages-dir: pypi_dist/
           skip-existing: true
