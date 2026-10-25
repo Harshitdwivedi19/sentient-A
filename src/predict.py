@@ -73,6 +73,11 @@ class ConversationSentimentAnalyzer:
         raw_models_path = Path(self.config["paths"]["models_dir"])
         models_base = raw_models_path if raw_models_path.is_absolute() else PROJECT_ROOT / raw_models_path
 
+        if model_type in ["auto", "default"]:
+            self._load_model("baseline")
+            self.active_model_type = "auto"
+            return
+
         if model_type == "baseline":
             model_dir = models_base / "baseline_tfidf"
             vec_path = model_dir / "tfidf_vectorizer.joblib"
@@ -103,7 +108,7 @@ class ConversationSentimentAnalyzer:
             self.loaded_models[model_type] = {"tokenizer": tokenizer, "model": model}
 
         else:
-            raise ValueError(f"Unknown model type: {model_type}. Choose from ['baseline', 'roberta_independent', 'roberta_context'].")
+            raise ValueError(f"Unknown model type: {model_type}. Choose from ['auto', 'baseline', 'hindi_baseline', 'roberta_independent', 'roberta_context'].")
 
         self.active_model_type = model_type
         logger.info(f"Loaded model architecture: '{model_type}'")

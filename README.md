@@ -13,7 +13,7 @@
   <a href="https://pytorch.org/"><img src="https://img.shields.io/badge/PyTorch-2.2%2B-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white" alt="PyTorch 2.2+"></a>
   <a href="https://huggingface.co/docs/transformers"><img src="https://img.shields.io/badge/Hugging%20Face-Transformers%204.38%2B-FFD21E?style=for-the-badge&logo=huggingface&logoColor=black" alt="Hugging Face Transformers"></a>
   <a href="https://scikit-learn.org/"><img src="https://img.shields.io/badge/scikit--learn-1.4%2B-F7931E?style=for-the-badge&logo=scikit-learn&logoColor=white" alt="scikit-learn"></a>
-  <a href="#test-suite-and-quality-assurance"><img src="https://img.shields.io/badge/Tests-36%20Passed%20(100%25)-5AAE91?style=for-the-badge&logo=pytest&logoColor=white" alt="Tests Passed"></a>
+  <a href="#test-suite-and-quality-assurance"><img src="https://img.shields.io/badge/Tests-40%20Passed%20(100%25)-5AAE91?style=for-the-badge&logo=pytest&logoColor=white" alt="Tests Passed"></a>
   <a href="#license"><img src="https://img.shields.io/badge/License-MIT-blue?style=for-the-badge" alt="MIT License"></a>
   <a href="#100-on-device-privacy-architecture"><img src="https://img.shields.io/badge/Privacy-100%25%20On--Device-5AAE91?style=for-the-badge&logo=shield&logoColor=white" alt="100% On-Device Privacy"></a>
 </p>

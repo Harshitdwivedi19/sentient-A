@@ -1,0 +1,15 @@
+include README.md
+include LICENSE
+include configs/config.yaml
+include models/baseline_tfidf/logistic_regression.joblib
+include models/baseline_tfidf/tfidf_vectorizer.joblib
+include models/hindi_baseline_tfidf/config.json
+include models/hindi_baseline_tfidf/logistic_regression.joblib
+include models/hindi_baseline_tfidf/tfidf_vectorizer.joblib
+prune models/roberta_context
+prune models/roberta_independent
+prune build
+prune dist
+prune build_tools
+prune mobile/build
+global-exclude *.py[cod] __pycache__ *.so *.dylib *.safetensors
