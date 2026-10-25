@@ -13,7 +13,12 @@ scipy>=1.12.0
 # Configuration & Utilities
 pyyaml>=6.0.1
 tqdm>=4.66.0
-requests>=2.31.0
+requests>=2.32.3
+certifi>=2026.10.19
+
+# API & Serving
+fastapi>=0.110.0
+uvicorn>=0.29.0
 
 # Visualization & App
 matplotlib>=3.8.0

@@ -15,6 +15,7 @@ import logging
 import sys
 from pathlib import Path
 from typing import List, Optional, Dict, Any
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
@@ -30,10 +31,27 @@ from src.predict import ConversationSentimentAnalyzer
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Global analyzer instance (initialized during lifespan startup)
+analyzer: Optional[ConversationSentimentAnalyzer] = None
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Modern lifespan context manager replacing deprecated on_event handlers."""
+    global analyzer
+    try:
+        analyzer = ConversationSentimentAnalyzer(default_model="baseline")
+        logger.info("ConversationSentimentAnalyzer successfully initialized.")
+    except Exception as e:
+        logger.error(f"Failed to initialize analyzer: {e}")
+    yield
+
+
 app = FastAPI(
     title="Conversation Sentiment Trajectory API",
     description="REST backend for conversation-level emotional trajectory modeling & WhatsApp chat analysis.",
-    version="1.0.0"
+    version="1.2.0",
+    lifespan=lifespan
 )
 
 # Enable CORS for local web and mobile clients
@@ -49,19 +67,6 @@ app.add_middleware(
 mobile_assets = PROJECT_ROOT / "mobile" / "assets"
 if mobile_assets.exists():
     app.mount("/mobile", StaticFiles(directory=str(mobile_assets), html=True), name="mobile")
-
-# Global analyzer instance (initialized on startup)
-analyzer: Optional[ConversationSentimentAnalyzer] = None
-
-
-@app.on_event("startup")
-def startup_event():
-    global analyzer
-    try:
-        analyzer = ConversationSentimentAnalyzer(default_model="baseline")
-        logger.info("ConversationSentimentAnalyzer successfully initialized.")
-    except Exception as e:
-        logger.error(f"Failed to initialize analyzer: {e}")
 
 
 class TextAnalysisRequest(BaseModel):
