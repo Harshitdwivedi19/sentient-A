@@ -840,44 +840,77 @@ class SentimentTrajectoryDesktopApp:
         chart_area.pack(fill=tk.BOTH, expand=True, padx=8, pady=4)
         self._embed_overview_chart(chart_area)
 
-        # Right Column: Notable Findings with Direct Links
-        right_box = tk.Frame(mid_row, bg=self.colors["card_bg"], width=340, highlightbackground=self.colors["border"], highlightthickness=1)
+        # Right Column: Executive Summary & Results of Analysis (Replaces overwhelming text)
+        right_box = tk.Frame(mid_row, bg=self.colors["card_bg"], width=380, highlightbackground=self.colors["border"], highlightthickness=1)
         right_box.pack(side=tk.RIGHT, fill=tk.BOTH)
         right_box.pack_propagate(False)
 
-        rt_hdr = tk.Frame(right_box, bg=self.colors["card_bg"], padx=12, pady=8)
-        rt_hdr.pack(fill=tk.X)
-        tk.Label(rt_hdr, text="NOTABLE MOMENTS (EVIDENCE)", font=("Segoe UI", 9, "bold"), bg=self.colors["card_bg"], fg=self.colors["text_main"]).pack(anchor="w")
+        # Retrieve or compute Executive Summary and Results
+        from src.explain import generate_executive_summary_and_results
+        sum_data = (self.current_analysis_result or {}).get("summary_and_results")
+        if not sum_data:
+            sum_data = generate_executive_summary_and_results(self.current_df, self.current_stats or {})
 
+        exec_sum = sum_data.get("executive_summary", {})
+        res_analysis = sum_data.get("analysis_results", {})
+
+        # Header: Executive Summary
+        rt_hdr = tk.Frame(right_box, bg=self.colors["card_bg"], padx=14, pady=10)
+        rt_hdr.pack(fill=tk.X)
+        tk.Label(rt_hdr, text="EXECUTIVE CONVERSATION SUMMARY", font=("Segoe UI", 9, "bold"), bg=self.colors["card_bg"], fg=self.colors["action_primary"]).pack(anchor="w")
+
+        # Scrollable content area for clean readable synthesis
         scroll_box = scrolledtext.ScrolledText(
             right_box,
             bg=self.colors["card_bg"],
             fg=self.colors["text_main"],
             font=("Segoe UI", 9),
             borderwidth=0,
-            padx=10,
-            pady=6
+            padx=12,
+            pady=4,
+            wrap="word"
         )
         scroll_box.pack(fill=tk.BOTH, expand=True)
 
-        if not turning_points:
-            scroll_box.insert(tk.END, "No abrupt tone shifts detected.\n\nThe tone throughout this conversation remained relatively stable without severe emotional fluctuations.")
-        else:
-            for idx, tp in enumerate(turning_points[:5]):
-                t_id = tp.get("turn_id", idx + 1)
-                spk = tp.get("speaker", "Participant")
-                delta = tp.get("delta", 0.0)
-                txt = tp.get("text", "")
-                direction = "Shifted Positive" if delta > 0 else "Shifted Negative"
+        scroll_box.insert(tk.END, "Narrative Flow:\n", "h2")
+        scroll_box.insert(tk.END, f"{exec_sum.get('story', '')}\n\n", "body")
 
-                scroll_box.insert(tk.END, f"Finding #{idx+1}: Turn {t_id} by {spk}\n", "hdr")
-                scroll_box.insert(tk.END, f"{direction} (Δ {delta:+.2f})\n", "delta")
-                scroll_box.insert(tk.END, f"\"{txt}\"\n\n", "quote")
+        scroll_box.insert(tk.END, "Participant Dynamics:\n", "h2")
+        scroll_box.insert(tk.END, f"{exec_sum.get('dynamics', '')}\n\n", "body")
 
-        scroll_box.tag_config("hdr", font=("Segoe UI", 9, "bold"), foreground=self.colors["text_main"])
-        scroll_box.tag_config("delta", font=("Segoe UI", 8, "bold"), foreground=self.colors["pos"] if delta > 0 else self.colors["neg"])
-        scroll_box.tag_config("quote", font=("Segoe UI", 8, "italic"), foreground=self.colors["text_muted"])
+        scroll_box.insert(tk.END, "RESULTS OF ANALYSIS:\n", "res_hdr")
+
+        h_code = res_analysis.get("health_code", "neu")
+        h_color = self.colors["pos"] if h_code == "pos" else (self.colors["neg"] if h_code == "neg" else self.colors["neu"])
+        scroll_box.insert(tk.END, f"• Atmosphere: {res_analysis.get('health_status', 'Balanced')}\n", "badge")
+
+        tb = res_analysis.get("tone_breakdown", {"positive": 0, "neutral": 100, "negative": 0})
+        scroll_box.insert(tk.END, f"• Tone Breakdown: {tb.get('positive', 0)}% Pos | {tb.get('neutral', 0)}% Neu | {tb.get('negative', 0)}% Neg\n", "body")
+
+        scroll_box.insert(tk.END, f"• Decisive Pivot: {res_analysis.get('decisive_moment', 'Steady progression')}\n", "body")
+        scroll_box.insert(tk.END, f"• Key Takeaway: {res_analysis.get('key_takeaway', '')}\n", "takeaway")
+
+        scroll_box.tag_config("h2", font=("Segoe UI", 9, "bold"), foreground=self.colors["text_main"])
+        scroll_box.tag_config("res_hdr", font=("Segoe UI", 9, "bold"), foreground=self.colors["action_primary"])
+        scroll_box.tag_config("badge", font=("Segoe UI", 9, "bold"), foreground=h_color)
+        scroll_box.tag_config("body", font=("Segoe UI", 9), foreground=self.colors["text_muted"])
+        scroll_box.tag_config("takeaway", font=("Segoe UI", 9, "bold"), foreground=self.colors["text_main"])
         scroll_box.configure(state="disabled")
+
+        # Progressive Disclosure Footer Button
+        btn_evidence = tk.Button(
+            right_box,
+            text="Inspect Full Messages & Context →",
+            font=("Segoe UI", 8, "bold"),
+            bg=self.colors["card_inset"],
+            fg=self.colors["action_primary"],
+            relief="flat",
+            cursor="hand2",
+            padx=10,
+            pady=6,
+            command=lambda: self._switch_view("messages")
+        )
+        btn_evidence.pack(fill=tk.X, padx=12, pady=8)
 
         # Bottom Guidance Strip
         guide_strip = tk.Frame(container, bg=self.colors["card_inset"], padx=14, pady=8, highlightbackground=self.colors["border"], highlightthickness=1)

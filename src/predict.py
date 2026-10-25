@@ -36,7 +36,7 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from src.context import build_context_representations
 from src.trajectory import compute_trajectory_statistics
-from src.explain import generate_conversation_explanation
+from src.explain import generate_conversation_explanation, generate_executive_summary_and_results
 from src.whatsapp_parser import parse_whatsapp_file, parse_whatsapp_raw_lines, sessionize_messages
 from src.hinglish_normalizer import normalize_whatsapp_text, detect_batch_language, detect_language_mode
 
@@ -248,6 +248,7 @@ class ConversationSentimentAnalyzer:
         preds_df = self.predict_dataframe(df, model_type=model_type, context_window=context_window)
         trajectory_stats = compute_trajectory_statistics(preds_df, turning_point_threshold=turning_point_threshold)
         explanation = generate_conversation_explanation(preds_df, trajectory_stats)
+        summary_and_results = generate_executive_summary_and_results(preds_df, trajectory_stats)
 
         detected_lang = preds_df["detected_language"].iloc[0] if "detected_language" in preds_df.columns and not preds_df.empty else "en"
 
@@ -258,5 +259,6 @@ class ConversationSentimentAnalyzer:
             "predictions_df": preds_df,
             "annotated_df": preds_df,
             "trajectory_stats": trajectory_stats,
-            "explanation": explanation
+            "explanation": explanation,
+            "summary_and_results": summary_and_results
         }

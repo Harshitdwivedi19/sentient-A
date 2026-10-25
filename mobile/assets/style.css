@@ -968,3 +968,124 @@ canvas {
   z-index: 300;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
+
+/* Executive Summary & Analysis Results */
+.executive-summary-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.health-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 12px;
+  background: var(--bg-inset);
+  color: var(--action-primary);
+}
+
+.health-badge.pos { background: rgba(5, 150, 105, 0.12); color: var(--tone-pos); }
+.health-badge.neu { background: rgba(217, 119, 6, 0.12); color: var(--tone-neu); }
+.health-badge.neg { background: rgba(220, 38, 38, 0.12); color: var(--tone-neg); }
+
+.exec-text {
+  font-size: 0.84rem;
+  line-height: 1.45;
+  color: var(--text-main);
+  margin: 0;
+}
+
+.exec-meta {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.tone-bar-wrap {
+  background: var(--bg-inset);
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tone-bar-legend {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.74rem;
+  color: var(--text-muted);
+}
+
+.legend-chip {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.legend-chip .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.legend-chip .dot.green { background-color: var(--tone-pos); }
+.legend-chip .dot.yellow { background-color: var(--tone-neu); }
+.legend-chip .dot.red { background-color: var(--tone-neg); }
+
+.tone-progress-bar {
+  height: 8px;
+  border-radius: 4px;
+  display: flex;
+  overflow: hidden;
+  background: #E2E8F0;
+}
+
+.bar-seg.pos { background-color: var(--tone-pos); }
+.bar-seg.neu { background-color: var(--tone-neu); }
+.bar-seg.neg { background-color: var(--tone-neg); }
+
+.results-takeaway-box {
+  background: var(--bg-card);
+  border: 1px dashed var(--border-subtle);
+  border-radius: 8px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.takeaway-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.takeaway-icon {
+  font-size: 0.90rem;
+  line-height: 1.2;
+}
+
+.takeaway-desc {
+  margin: 0;
+  font-size: 0.80rem;
+  line-height: 1.35;
+  color: var(--text-main);
+}
+
+.btn-inspect-evidence {
+  background: var(--bg-inset);
+  color: var(--action-primary);
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 10px 12px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  cursor: pointer;
+  width: 100%;
+  text-align: center;
+  min-height: 40px;
+}

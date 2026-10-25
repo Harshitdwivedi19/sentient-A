@@ -140,3 +140,120 @@ def generate_conversation_explanation(
             "limitations": sec_limitations,
         }
     }
+
+
+def generate_executive_summary_and_results(
+    df: pd.DataFrame,
+    stats: Dict[str, Any]
+) -> Dict[str, Any]:
+    """
+    Synthesize an executive plain-language summary and structured analysis results.
+    Designed to replace overwhelming message dumps with calm, decision-ready insights.
+    """
+    num_turns = stats.get("num_turns", len(df))
+    if num_turns == 0 or df.empty:
+        return {
+            "executive_summary": {
+                "story": "No messages found in this dialogue.",
+                "dynamics": "No participant activity recorded.",
+                "outcome": "Analysis could not be performed on an empty conversation."
+            },
+            "analysis_results": {
+                "health_status": "No Data",
+                "health_code": "neu",
+                "tone_breakdown": {"positive": 0, "neutral": 100, "negative": 0},
+                "decisive_moment": "None detected",
+                "key_takeaway": "Import a conversation with valid turns to see results."
+            }
+        }
+
+    mean_pol = stats.get("mean_polarity", float(df["polarity_score"].mean()))
+    net_drift = stats.get("net_change", float(df.iloc[-1]["polarity_score"] - df.iloc[0]["polarity_score"]))
+    turning_points = stats.get("turning_points", [])
+
+    # Count sentiment categories
+    pos_count = sum(1 for s in df["pred_sentiment"].astype(str).str.lower() if "pos" in s)
+    neg_count = sum(1 for s in df["pred_sentiment"].astype(str).str.lower() if "neg" in s)
+    neu_count = num_turns - pos_count - neg_count
+    pos_pct = round((pos_count / num_turns) * 100.0, 1)
+    neu_pct = round((neu_count / num_turns) * 100.0, 1)
+    neg_pct = round((neg_count / num_turns) * 100.0, 1)
+
+    # Participant breakdown
+    speakers = df["speaker"].value_counts()
+    dominant_speaker = speakers.index[0] if not speakers.empty else "Participant"
+    spk_count = len(speakers)
+
+    # Opening, Middle, Closing Tones
+    first_turn = df.iloc[0]
+    last_turn = df.iloc[-1]
+    init_tone = str(first_turn.get("pred_sentiment", "neutral")).capitalize()
+    final_tone = str(last_turn.get("pred_sentiment", "neutral")).capitalize()
+
+    # Determine Atmosphere & Health
+    if net_drift >= 0.20 and mean_pol >= 0.05:
+        health_status = "Resolved & Positive"
+        health_code = "pos"
+        outcome_text = f"The dialogue concluded on a constructive and positive note, achieving a net tone improvement of {net_drift:+.2f}."
+        takeaway = "Participants successfully worked through initial friction or queries to achieve mutual consensus and closure."
+    elif net_drift <= -0.20 and mean_pol <= -0.05:
+        health_status = "Tense & Unresolved"
+        health_code = "neg"
+        outcome_text = f"The conversation showed growing tension, closing with an overall negative drift of {net_drift:+.2f}."
+        takeaway = "Discussion ended with unaddressed concerns or frustration; a clarifying follow-up is recommended."
+    elif abs(mean_pol) <= 0.15 and abs(net_drift) <= 0.15:
+        health_status = "Balanced & Informational"
+        health_code = "neu"
+        outcome_text = f"The conversation maintained an even, informational tone throughout (mean tone: {mean_pol:+.2f})."
+        takeaway = "Communication remained professional and focused on routine task coordination without emotional escalation."
+    elif mean_pol > 0.15:
+        health_status = "Cooperative & Supportive"
+        health_code = "pos"
+        outcome_text = f"The overall tone was predominantly warm and supportive, with {pos_pct}% positive remarks."
+        takeaway = "Strong interpersonal rapport and collaborative engagement were maintained across all participants."
+    else:
+        health_status = "Fluctuating / Dynamic"
+        health_code = "neu"
+        outcome_text = f"Tone shifted between positive and critical phases across the dialogue."
+        takeaway = "Active back-and-forth communication occurred with noticeable shifts during key topics."
+
+    # Construct the Plain-Language Narrative Story
+    story_parts = [
+        f"This conversation spans {num_turns} messages between {spk_count} participant{'s' if spk_count > 1 else ''} ({', '.join(speakers.index[:3])}).",
+        f"It opened with a {init_tone.lower()} turn by {first_turn['speaker']} and evolved toward a {final_tone.lower()} closing by {last_turn['speaker']}."
+    ]
+    if turning_points:
+        best_tp = max(turning_points, key=lambda x: abs(x.get("delta", 0)))
+        direction = "upward toward resolution" if best_tp.get("delta", 0) > 0 else "downward into disagreement"
+        decisive_moment = f"Turn #{best_tp['turn_id']} by {best_tp['speaker']} triggered a pivotal shift {direction} (Δ {best_tp.get('delta', 0):+.2f})."
+        story_parts.append(f"A major turning point occurred at Turn #{best_tp['turn_id']} by {best_tp['speaker']}, pivoting the tone {direction}.")
+    else:
+        decisive_moment = "No severe emotional pivots occurred; dialogue was steady."
+        story_parts.append("The discussion remained steady without sudden emotional reversals.")
+
+    story = " ".join(story_parts)
+
+    # Participant Dynamics Summary
+    dynamics = (
+        f"{dominant_speaker} contributed the most ({speakers.iloc[0]} of {num_turns} messages, {speakers.iloc[0]/num_turns*100:.0f}% of chat). "
+        f"{'Other participants contributed evenly.' if spk_count > 1 else 'Single-speaker monologue.'}"
+    )
+
+    return {
+        "executive_summary": {
+            "story": story,
+            "dynamics": dynamics,
+            "outcome": outcome_text
+        },
+        "analysis_results": {
+            "health_status": health_status,
+            "health_code": health_code,
+            "tone_breakdown": {
+                "positive": pos_pct,
+                "neutral": neu_pct,
+                "negative": neg_pct
+            },
+            "decisive_moment": decisive_moment,
+            "key_takeaway": takeaway
+        }
+    }

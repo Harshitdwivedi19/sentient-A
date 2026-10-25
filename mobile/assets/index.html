@@ -95,13 +95,40 @@
           </div>
         </div>
 
-        <!-- Notable Moments (Traceable Evidence) -->
-        <div class="card notable-moments-card">
-          <h2 class="card-title">Notable Moments (Evidence)</h2>
-          <p class="card-caption">Moments where conversational tone changed significantly. Tap any moment to inspect the supporting messages.</p>
-          <div id="notableMomentsList" class="moments-list">
-            <!-- Populated dynamically -->
+        <!-- Executive Summary & Results of Analysis (Replaces overwhelming text) -->
+        <div class="card executive-summary-card">
+          <div class="card-header-row">
+            <h2 class="card-title">Executive Summary</h2>
+            <span id="healthBadge" class="health-badge">Resolved & Positive</span>
           </div>
+          <p id="execSummaryStory" class="exec-text">Loading conversation narrative...</p>
+          <p id="execSummaryDynamics" class="exec-meta">Loading participant dynamics...</p>
+
+          <div class="tone-bar-wrap">
+            <div class="tone-bar-legend">
+              <span class="legend-chip"><span class="dot green"></span> Positive <b id="pctPos">0%</b></span>
+              <span class="legend-chip"><span class="dot yellow"></span> Neutral <b id="pctNeu">0%</b></span>
+              <span class="legend-chip"><span class="dot red"></span> Negative <b id="pctNeg">0%</b></span>
+            </div>
+            <div class="tone-progress-bar">
+              <div id="barPos" class="bar-seg pos" style="width:0%"></div>
+              <div id="barNeu" class="bar-seg neu" style="width:0%"></div>
+              <div id="barNeg" class="bar-seg neg" style="width:0%"></div>
+            </div>
+          </div>
+
+          <div class="results-takeaway-box">
+            <div class="takeaway-row">
+              <span class="takeaway-icon">🎯</span>
+              <p id="resPivotText" class="takeaway-desc">Key Pivot: Loading decisive moment...</p>
+            </div>
+            <div class="takeaway-row">
+              <span class="takeaway-icon">💡</span>
+              <p id="resTakeawayText" class="takeaway-desc">Takeaway: Loading actionable insight...</p>
+            </div>
+          </div>
+
+          <button id="btnInspectMessagesFromSummary" class="btn-inspect-evidence">Inspect Full Messages & Context →</button>
         </div>
 
         <!-- Guidance Banner -->

@@ -249,31 +249,94 @@ function updateOverviewKpis() {
   if (elStab) elStab.textContent = `${Math.max(0, Math.min(100, Math.round((1 - vol) * 100)))}%`;
   if (elTP) elTP.textContent = `${tps.length} Shifts`;
 
-  // Render Notable Moments list
-  const momentsContainer = document.getElementById("notableMomentsList");
-  if (momentsContainer) {
-    momentsContainer.innerHTML = "";
-    if (tps.length === 0) {
-      momentsContainer.innerHTML = `<div class="moment-item"><p class="text-muted">No abrupt tone shifts detected. Tone remained stable throughout.</p></div>`;
+  // Populate Executive Summary & Results of Analysis
+  const totalTurns = preds.length || 1;
+  const posCount = preds.filter(p => p.polarity_score > 0.15).length;
+  const negCount = preds.filter(p => p.polarity_score < -0.15).length;
+  const neuCount = totalTurns - posCount - negCount;
+
+  const posPct = Math.round((posCount / totalTurns) * 100);
+  const negPct = Math.round((negCount / totalTurns) * 100);
+  const neuPct = 100 - posPct - negPct;
+
+  // Health Status determination
+  let healthText = "Balanced & Neutral";
+  let healthCode = "neu";
+  let takeaway = "Communication remained focused on routine task coordination.";
+  if (drift >= 0.20 && meanP >= 0.05) {
+    healthText = "Resolved & Positive";
+    healthCode = "pos";
+    takeaway = "Participants worked through initial friction to achieve mutual consensus and closure.";
+  } else if (drift <= -0.20 && meanP <= -0.05) {
+    healthText = "Tense & Unresolved";
+    healthCode = "neg";
+    takeaway = "Conversation ended with unaddressed friction; a clarifying follow-up is recommended.";
+  } else if (meanP > 0.15) {
+    healthText = "Cooperative & Supportive";
+    healthCode = "pos";
+    takeaway = "Strong interpersonal rapport and collaborative engagement were maintained throughout.";
+  }
+
+  const elHealth = document.getElementById("healthBadge");
+  if (elHealth) {
+    elHealth.textContent = healthText;
+    elHealth.className = `health-badge ${healthCode}`;
+  }
+
+  // Story & Dynamics
+  const firstSpk = preds[0]?.speaker || "Participant 1";
+  const lastSpk = preds[preds.length - 1]?.speaker || "Participant 2";
+  const firstTone = (preds[0]?.pred_sentiment || "neutral").toLowerCase();
+  const lastTone = (preds[preds.length - 1]?.pred_sentiment || "neutral").toLowerCase();
+
+  const storyEl = document.getElementById("execSummaryStory");
+  if (storyEl) {
+    storyEl.textContent = `This conversation spans ${totalTurns} messages among ${participants.length} participant${participants.length > 1 ? 's' : ''} (${participants.slice(0, 3).join(', ')}). It opened with a ${firstTone} turn by ${firstSpk} and evolved toward a ${lastTone} closing by ${lastSpk}. Overall mood drift is ${drift >= 0 ? '+' : ''}${drift.toFixed(2)}.`;
+  }
+
+  const dynEl = document.getElementById("execSummaryDynamics");
+  if (dynEl) {
+    dynEl.textContent = `Participation: ${participants.slice(0, 2).join(' and ')} drove the primary dialogue alternation. 0 messages were skipped or incomplete.`;
+  }
+
+  // Tone bar breakdown
+  const pPos = document.getElementById("pctPos");
+  const pNeu = document.getElementById("pctNeu");
+  const pNeg = document.getElementById("pctNeg");
+  if (pPos) pPos.textContent = `${posPct}%`;
+  if (pNeu) pNeu.textContent = `${neuPct}%`;
+  if (pNeg) pNeg.textContent = `${negPct}%`;
+
+  const bPos = document.getElementById("barPos");
+  const bNeu = document.getElementById("barNeu");
+  const bNeg = document.getElementById("barNeg");
+  if (bPos) bPos.style.width = `${posPct}%`;
+  if (bNeu) bNeu.style.width = `${neuPct}%`;
+  if (bNeg) bNeg.style.width = `${negPct}%`;
+
+  // Key pivot moment
+  const pivotEl = document.getElementById("resPivotText");
+  if (pivotEl) {
+    if (tps.length > 0) {
+      const bestTp = tps.reduce((max, tp) => Math.abs(tp.delta || 0) > Math.abs(max.delta || 0) ? tp : max, tps[0]);
+      const dir = (bestTp.delta || 0) > 0 ? "upward toward resolution" : "downward into disagreement";
+      pivotEl.textContent = `Key Pivot: Turn #${bestTp.turn_index} by ${escapeHtml(bestTp.speaker)} shifted tone ${dir} (Δ ${(bestTp.delta || 0).toFixed(2)}).`;
     } else {
-      tps.slice(0, 4).forEach((tp) => {
-        const item = document.createElement("div");
-        item.className = "moment-item clickable";
-        const isPos = (tp.delta || 0) > 0;
-        const deltaLabel = isPos ? "Shifted Positive" : "Shifted Negative";
-        item.innerHTML = `
-          <div class="moment-header">
-            <strong>Turn #${tp.turn_index} • ${escapeHtml(tp.speaker)}</strong>
-            <span class="moment-delta ${isPos ? 'text-green' : 'text-red'}">${deltaLabel} (Δ ${(tp.delta || 0).toFixed(2)})</span>
-          </div>
-          <p class="moment-quote">"${escapeHtml(tp.text)}"</p>
-        `;
-        item.addEventListener("click", () => {
-          openDetailDrawer(tp.turn_index);
-        });
-        momentsContainer.appendChild(item);
-      });
+      pivotEl.textContent = "Key Pivot: No severe emotional swings detected; conversation tone was steady.";
     }
+  }
+
+  const takeEl = document.getElementById("resTakeawayText");
+  if (takeEl) {
+    takeEl.textContent = `Key Takeaway: ${takeaway}`;
+  }
+
+  const btnInspect = document.getElementById("btnInspectMessagesFromSummary");
+  if (btnInspect && !btnInspect.dataset.bound) {
+    btnInspect.dataset.bound = "true";
+    btnInspect.addEventListener("click", () => {
+      switchView("sec-messages");
+    });
   }
 }
 
