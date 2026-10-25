@@ -81,10 +81,19 @@ def generate_banner():
     emblem_path = PROJECT_ROOT / "assets" / "branding" / "logo_master_512.png"
     if emblem_path.exists():
         emblem = Image.open(emblem_path).convert("RGBA")
-        emblem_thumb = emblem.resize((120, 120), Image.Resampling.LANCZOS)
-        # Background card behind emblem
-        draw.rounded_rectangle([75, 75, 215, 215], radius=24, fill=(15, 23, 42, 230), outline=(56, 189, 248, 80), width=1)
-        img.paste(emblem_thumb, (85, 85), emblem_thumb)
+        emblem_size = 144
+        emblem_thumb = emblem.resize((emblem_size, emblem_size), Image.Resampling.LANCZOS)
+        
+        # Ambient halo glow behind emblem matching the brand palette
+        halo = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+        h_draw = ImageDraw.Draw(halo)
+        h_draw.ellipse([50, 55, 50 + emblem_size + 40, 55 + emblem_size + 40], fill=(56, 189, 248, 45))
+        h_draw.ellipse([60, 65, 60 + emblem_size + 20, 65 + emblem_size + 20], fill=(245, 158, 11, 35))
+        img = Image.alpha_composite(img, halo)
+        draw = ImageDraw.Draw(img)
+
+        # Paste crisp emblem directly
+        img.paste(emblem_thumb, (70, 75), emblem_thumb)
 
     # 6. Typography
     font_large = None
@@ -92,8 +101,8 @@ def generate_banner():
     font_chips = None
     for f in ["segoeui.ttf", "arial.ttf", "DejaVuSans-Bold.ttf", "DejaVuSans.ttf"]:
         try:
-            font_large = ImageFont.truetype(f, 44)
-            font_sub = ImageFont.truetype(f, 19)
+            font_large = ImageFont.truetype(f, 42)
+            font_sub = ImageFont.truetype(f, 18)
             font_chips = ImageFont.truetype(f, 13)
             break
         except Exception:
@@ -105,21 +114,21 @@ def generate_banner():
         font_chips = ImageFont.load_default()
 
     # Draw Title & Tagline
-    tx = 240
-    draw.text((tx, 88), "SENTIMENT TRAJECTORY ANALYSIS", fill=(255, 255, 255, 255), font=font_large)
-    draw.text((tx, 146), "Understand How Sentiment Changes Across a Conversation", fill=(148, 163, 184, 255), font=font_sub)
+    tx = 245
+    draw.text((tx, 76), "SENTIMENT TRAJECTORY ANALYSIS", fill=(255, 255, 255, 255), font=font_large)
+    draw.text((tx, 132), "Context-Aware Emotion Dynamics • English • Hindi • Hinglish", fill=(148, 163, 184, 255), font=font_sub)
 
     # Technical Feature Chips
     chips = [
-        ("Context-Aware RoBERTa", (56, 189, 248)),
+        ("EN • HI • Hinglish", (56, 189, 248)),
         ("Candidate Turning Points", (243, 216, 106)),
-        ("Windows Desktop .EXE", (168, 85, 247)),
-        ("Android Mobile .APK / .AAB", (52, 211, 153)),
+        ("Executive Summary Dashboard", (168, 85, 247)),
+        ("Python Package (sentient-a)", (52, 211, 153)),
         ("100% On-Device Privacy", (90, 174, 145))
     ]
 
     cx_pos = tx
-    cy_pos = 186
+    cy_pos = 175
     for label, col in chips:
         ch_w = len(label) * 8 + 18
         draw.rounded_rectangle([cx_pos, cy_pos, cx_pos + ch_w, cy_pos + 26], radius=6, fill=(15, 23, 42, 220), outline=(col[0], col[1], col[2], 140), width=1)
