@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Sentient Trajectory — Conversation Mood & Trajectory Studio</title>
+  <title>Sentient Trajectory — Conversation Tone & Trajectory Studio</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="app-shell">
     
-    <!-- Top Persistent Masthead -->
+    <!-- Top Compact Masthead -->
     <header class="app-masthead">
       <div class="masthead-brand">
         <img src="logo.png" alt="Logo" class="app-logo">
@@ -25,99 +25,92 @@
         </div>
       </div>
       <div class="masthead-actions">
-        <button id="quickUploadBtn" class="btn-icon-upload" title="Upload WhatsApp Chat">📁</button>
-        <span class="status-pill status-ready" id="connStatus">Ready</span>
+        <button id="quickUploadBtn" class="btn-top-action" title="Import WhatsApp Chat">+ Import</button>
+        <button id="openSettingsBtn" class="btn-icon-settings" title="Settings & Data">⚙️</button>
       </div>
     </header>
 
     <!-- Hidden Native File Chooser Input for Android APK -->
     <input type="file" id="waFileInput" accept=".txt,text/plain,text/*" style="display:none;">
 
-    <!-- Top Sub-Navigation Pill Strip (Quick Switching for Topics & Settings) -->
-    <div class="sub-nav-ribbon">
-      <button class="sub-nav-pill active" data-sub="main">Primary Views</button>
-      <button class="sub-nav-pill" data-sub="sec-topics">🏷️ Topics</button>
-      <button class="sub-nav-pill" data-sub="sec-settings">⚙️ Settings</button>
-    </div>
-
-    <!-- Active Filter Warning Ribbon (when filters applied) -->
+    <!-- Active Filter Alert Ribbon -->
     <div id="activeFilterRibbon" class="filter-alert-ribbon hidden">
       <span id="activeFilterText">Filters: None</span>
       <button id="clearAllFiltersBtn" class="btn-clear-chip">Clear All</button>
     </div>
 
-    <!-- Main Scrollable Content Container -->
+    <!-- Main Scrollable Content Area -->
     <main class="content-scroll">
 
       <!-- ================================================================= -->
-      <!-- SECTION 1: OVERVIEW DASHBOARD                                     -->
+      <!-- 1. OVERVIEW SCREEN                                                -->
       <!-- ================================================================= -->
       <section id="sec-overview" class="view-section active">
-        <!-- Data Coverage & Quality Banner -->
-        <div class="quality-audit-card">
-          <div class="quality-title-row">
-            <span class="audit-icon">🛡️</span>
-            <strong>Data Quality & Coverage Audit</strong>
-            <span class="audit-badge" id="overviewCoverageBadge">100% Analyzed</span>
+        <!-- Honest Scope & Coverage Banner -->
+        <div class="scope-card">
+          <div class="scope-header-row">
+            <strong>Conversation Summary</strong>
+            <span class="scope-badge" id="overviewCoverageBadge">100% Analyzed</span>
           </div>
-          <p class="audit-desc" id="overviewCoverageDesc">
-            All messages analyzed in temporary local memory. 0 messages skipped. Certainty: 94% (estimate).
+          <p class="scope-details" id="overviewScopeDetails">
+            Loading dialogue data in local RAM...
           </p>
         </div>
 
-        <!-- 4-Metric KPI Grid -->
-        <div class="kpi-grid">
-          <div class="kpi-card">
-            <span class="kpi-label">AVERAGE MOOD</span>
-            <div class="kpi-value" id="kpiAvgMood">+0.42 😊</div>
-            <span class="kpi-sub">Overall tone</span>
+        <!-- Metric Explanation Strip (Every Number Explained) -->
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <span class="metric-label">AVERAGE TONE</span>
+            <div class="metric-value" id="kpiAvgMood">+0.24</div>
+            <span class="metric-help">Overall polarity [-1.0 to +1.0]</span>
           </div>
-          <div class="kpi-card">
-            <span class="kpi-label">OVERALL SHIFT</span>
-            <div class="kpi-value" id="kpiNetShift">+0.31 ↗</div>
-            <span class="kpi-sub">Net emotional change</span>
+          <div class="metric-card">
+            <span class="metric-label">OVERALL CHANGE</span>
+            <div class="metric-value" id="kpiNetShift">+0.31 ↗</div>
+            <span class="metric-help">Start vs end difference</span>
           </div>
-          <div class="kpi-card">
-            <span class="kpi-label">MOOD STABILITY</span>
-            <div class="kpi-value" id="kpiStability">92% 🎯</div>
-            <span class="kpi-sub">Emotional consistency</span>
+          <div class="metric-card">
+            <span class="metric-label">TONE STABILITY</span>
+            <div class="metric-value" id="kpiStability">90%</div>
+            <span class="metric-help">Consistency of emotion</span>
           </div>
-          <div class="kpi-card">
-            <span class="kpi-label">KEY MOOD SHIFTS</span>
-            <div class="kpi-value" id="kpiTurningPoints">2 Shifts ⚡</div>
-            <span class="kpi-sub">Sudden tone pivots</span>
+          <div class="metric-card">
+            <span class="metric-label">NOTABLE SHIFTS</span>
+            <div class="metric-value" id="kpiTurningPoints">2 Shifts</div>
+            <span class="metric-help">Abrupt tone turns (Δ >= 0.40)</span>
           </div>
         </div>
 
-        <!-- Primary Timeline Dual-Layer Visualizer -->
+        <!-- Primary Timeline Visualizer (Dual-Axis) -->
         <div class="card visualizer-card">
           <div class="card-header-row">
-            <h2 class="card-title">Conversation Trajectory & Density</h2>
-            <button class="btn-link-sm" id="btnGoToDeepTimeline">Deep View →</button>
+            <h2 class="card-title">Tone Trajectory & Message Volume</h2>
+            <button class="btn-link-action" id="btnGoToDeepTimeline">Deep View →</button>
           </div>
-          <p class="chart-caption">Continuous mood trajectory [-1, +1] with message volume bars below.</p>
+          <p class="chart-caption">Continuous tone curve [-1 to +1] with message volume bars below.</p>
           <div class="canvas-container">
             <canvas id="overviewTimelineCanvas"></canvas>
           </div>
         </div>
 
-        <!-- Notable Moments (Evidence-Backed) -->
+        <!-- Notable Moments (Traceable Evidence) -->
         <div class="card notable-moments-card">
           <h2 class="card-title">Notable Moments (Evidence)</h2>
+          <p class="card-caption">Moments where conversational tone changed significantly. Tap any moment to inspect the supporting messages.</p>
           <div id="notableMomentsList" class="moments-list">
             <!-- Populated dynamically -->
           </div>
         </div>
 
         <!-- Guidance Banner -->
-        <div class="card guidance-card">
-          <span class="guidance-label">💡 Suggested Exploration:</span>
-          <p>Tap <strong>Timeline</strong> to scrub specific moments, or tap <strong>Speakers</strong> to examine participation balance.</p>
+        <div class="guidance-box">
+          <span class="guidance-title">💡 What to explore next:</span>
+          <p>Tap <strong>Timeline</strong> to explore changes over time with zoom controls, or tap <strong>People</strong> to examine participation balance.</p>
         </div>
       </section>
 
       <!-- ================================================================= -->
-      <!-- SECTION 2: TIMELINE (ZOOM, BRUSH & MULTI-SPEAKER)                 -->
+      <!-- 2. TIMELINE SCREEN                                                -->
       <!-- ================================================================= -->
       <section id="sec-timeline" class="view-section">
         <div class="card">
@@ -127,11 +120,9 @@
               <button class="pill-btn active" data-preset="all">All</button>
               <button class="pill-btn" data-preset="half1">1st Half</button>
               <button class="pill-btn" data-preset="half2">2nd Half</button>
-              <button class="pill-btn" data-preset="peak">Peak Tension</button>
+              <button class="pill-btn" data-preset="shifts">Notable Shifts</button>
             </div>
-            <div class="timeline-toggles">
-              <button id="toggleTableModeBtn" class="pill-btn-subtle">📋 Table Mode</button>
-            </div>
+            <button id="toggleTableModeBtn" class="pill-btn-subtle">📋 Table Mode</button>
           </div>
 
           <div id="timelineVisualMode">
@@ -139,9 +130,9 @@
               <canvas id="deepTimelineCanvas"></canvas>
             </div>
             <div class="timeline-legend-row">
-              <span class="legend-item"><span class="dot dot-coral"></span> Trajectory Line</span>
-              <span class="legend-item"><span class="dot dot-teal"></span> Message Density</span>
-              <span class="legend-item"><span class="dot dot-gold"></span> Inflection Point</span>
+              <span class="legend-item"><span class="dot dot-blue"></span> Average Tone</span>
+              <span class="legend-item"><span class="dot dot-gray"></span> Message Volume</span>
+              <span class="legend-item"><span class="dot dot-envelope"></span> Volatility Range</span>
             </div>
           </div>
 
@@ -150,8 +141,8 @@
               <thead>
                 <tr>
                   <th>Turn Range</th>
-                  <th>Mean Mood</th>
-                  <th>Min/Max</th>
+                  <th>Mean Tone</th>
+                  <th>Min / Max</th>
                   <th>Messages</th>
                 </tr>
               </thead>
@@ -162,19 +153,20 @@
       </section>
 
       <!-- ================================================================= -->
-      <!-- SECTION 3: SPEAKERS & PARTICIPATION                               -->
+      <!-- 3. PEOPLE & PARTICIPATION SCREEN                                  -->
       <!-- ================================================================= -->
-      <section id="sec-speakers" class="view-section">
+      <section id="sec-people" class="view-section">
         <div class="section-heading">
-          <h2>Speakers & Turn Participation</h2>
-          <p>Understand who speaks, how much they contribute, and their emotional range.</p>
+          <h2>People & Participation</h2>
+          <p>Message distribution, average tone, and observed emotional range per person.</p>
         </div>
         <div id="speakersCardsGrid" class="speakers-grid">
           <!-- Populated dynamically -->
         </div>
 
         <div class="card">
-          <h3 class="card-title">Turn Alternation Heatmap</h3>
+          <h3 class="card-title">Turn Alternation Timeline</h3>
+          <p class="card-caption">Visualizes when each participant spoke across the conversation.</p>
           <div class="canvas-container">
             <canvas id="speakerAlternationCanvas"></canvas>
           </div>
@@ -182,38 +174,18 @@
       </section>
 
       <!-- ================================================================= -->
-      <!-- SECTION 4: TOPICS & CLUSTERS                                      -->
-      <!-- ================================================================= -->
-      <section id="sec-topics" class="view-section">
-        <div class="section-heading">
-          <h2>Thematic Clusters & Tree Map</h2>
-          <p>Grouping conversational feedback by subject matter and sentiment tone.</p>
-        </div>
-        <div class="card">
-          <div class="canvas-container-lg">
-            <canvas id="mobileTreemapCanvas"></canvas>
-          </div>
-          <div class="treemap-legend">
-            <span class="legend-item"><span class="dot dot-green"></span> Positive Feedback</span>
-            <span class="legend-item"><span class="dot dot-gold"></span> Neutral Inquiries</span>
-            <span class="legend-item"><span class="dot dot-coral"></span> Critical Concerns</span>
-          </div>
-        </div>
-      </section>
-
-      <!-- ================================================================= -->
-      <!-- SECTION 5: MESSAGES (SEARCHABLE & FILTERABLE EVIDENCE)            -->
+      <!-- 4. MESSAGES SCREEN (SEARCHABLE EVIDENCE)                          -->
       <!-- ================================================================= -->
       <section id="sec-messages" class="view-section">
         <!-- Search & Filter Controls -->
         <div class="card search-filter-card">
           <div class="search-input-box">
             <span class="search-icon">🔍</span>
-            <input type="text" id="mobileSearchInput" placeholder="Search message text or speaker...">
+            <input type="text" id="mobileSearchInput" placeholder="Search message text or participant...">
           </div>
           <div class="filter-dropdowns-row">
             <select id="mobileSpeakerSelect" class="filter-select">
-              <option value="all">All Speakers</option>
+              <option value="all">All Participants</option>
             </select>
             <select id="mobileSentimentSelect" class="filter-select">
               <option value="all">All Tones</option>
@@ -230,79 +202,107 @@
             <!-- Rendered in windowed chunks -->
           </div>
           <div class="pagination-footer">
-            <span id="messagesCountLabel" class="count-label">Showing 0 of 0</span>
+            <span id="messagesCountLabel" class="count-label">Showing 0 of 0 messages</span>
             <button id="loadMoreMessagesBtn" class="btn-load-more">Load More Messages</button>
           </div>
         </div>
       </section>
 
       <!-- ================================================================= -->
-      <!-- SECTION 6: INSIGHTS & NARRATIVE ARCHETYPES                        -->
+      <!-- 5. PLAIN-LANGUAGE USER GUIDE                                      -->
       <!-- ================================================================= -->
-      <section id="sec-insights" class="view-section">
+      <section id="sec-guide" class="view-section">
         <div class="section-heading">
-          <h2>Evidence-Backed Insights</h2>
-          <p>Key conversational patterns and narrative arc classifications.</p>
+          <h2>User Guide & Help Manual</h2>
+          <p>Everyday explanations of how to import chats, read charts, and understand what the analysis can and cannot tell you.</p>
         </div>
-        <div id="insightsContainer" class="insights-stack">
-          <!-- Populated dynamically -->
+
+        <div class="guide-accordion">
+          <div class="guide-card">
+            <h3>1. How to Export & Import a WhatsApp Chat</h3>
+            <p>Open WhatsApp on your phone, open any chat, tap the three dots in the top right -> <strong>More</strong> -> <strong>Export Chat</strong> -> choose <strong>Without Media</strong>. Save the resulting <code>.txt</code> file and tap <strong>+ Import</strong> at the top of this app.</p>
+          </div>
+
+          <div class="guide-card">
+            <h3>2. What Happens During Analysis?</h3>
+            <p>Your chat is parsed line-by-line into sequential dialogue turns in your device's temporary memory (RAM). The context-aware sentiment model evaluates each message along with its preceding context to assess whether the wording expresses positive appreciation, neutral information, or critical dissatisfaction.</p>
+          </div>
+
+          <div class="guide-card">
+            <h3>3. What Does Tone Mean in this App?</h3>
+            <p>Every message receives a polarity score between <strong>-1.0 (negative)</strong> and <strong>+1.0 (positive)</strong>, with <strong>0.0 representing neutral</strong>:</p>
+            <ul>
+              <li><strong class="text-green">Positive (+0.15 to +1.0):</strong> Gratitude, agreement, relief, helpfulness.</li>
+              <li><strong class="text-amber">Neutral (-0.15 to +0.15):</strong> Factual inquiries, logistics, routine status updates.</li>
+              <li><strong class="text-red">Negative (-1.0 to -0.15):</strong> Frustration, dissatisfaction, criticism, urgency.</li>
+            </ul>
+          </div>
+
+          <div class="guide-card">
+            <h3>4. Important Limitations: What the AI Cannot Tell You</h3>
+            <p><strong>This app evaluates linguistic text only.</strong> It does NOT diagnose psychological health, evaluate interpersonal relationships, or determine what someone was truly feeling internally. Sarcasm, irony, in-jokes, and cultural idioms can easily be misclassified. Always review the actual message text in the Messages tab.</p>
+          </div>
+
+          <div class="guide-card">
+            <h3>5. How to Trace Results to Supporting Messages</h3>
+            <p>Every finding on the Overview and every point on the Timeline is directly linked to the conversation text. Tap any notable moment or message bubble to view the message alongside its 3 preceding context turns.</p>
+          </div>
+
+          <div class="guide-card">
+            <h3>6. Privacy & 100% On-Device Processing</h3>
+            <p>Your conversation messages are analyzed strictly inside your device's local memory (RAM). No chat text is sent to cloud servers or stored in remote databases. When you close the app or tap <strong>Purge Data</strong> in Settings, all data is immediately discarded.</p>
+          </div>
         </div>
       </section>
 
       <!-- ================================================================= -->
-      <!-- SECTION 7: DATA MANAGEMENT & SETTINGS                             -->
+      <!-- 6. DATA MANAGEMENT & SETTINGS SCREEN                              -->
       <!-- ================================================================= -->
       <section id="sec-settings" class="view-section">
         <div class="card">
-          <h2 class="card-title">Dataset Management & Privacy</h2>
-          <div class="settings-group">
-            <span class="setting-label">Active Conversation Source:</span>
+          <h2 class="card-title">Memory & Data Management</h2>
+          <div class="settings-row">
+            <span class="setting-key">Active Chat:</span>
             <span class="setting-val" id="settingsDatasetName">Sample 1</span>
           </div>
-          <div class="settings-group">
-            <span class="setting-label">Data Retention:</span>
-            <span class="setting-val text-green">100% In-Memory (Zero Cloud Storage)</span>
+          <div class="settings-row">
+            <span class="setting-key">Storage Policy:</span>
+            <span class="setting-val text-green">100% Local RAM (Discarded on Exit)</span>
           </div>
-          <button id="btnPurgeData" class="btn-danger-outline">Purge Data from Memory</button>
+          <button id="btnPurgeData" class="btn-danger-outline">Purge Conversation from Memory</button>
         </div>
 
         <div class="card">
-          <h2 class="card-title">Exports & Reports</h2>
-          <p class="card-caption">All exports include Risk #87 formula injection defense.</p>
+          <h2 class="card-title">Safe Data Exports</h2>
+          <p class="card-caption">All exported files include automatic formula injection escaping.</p>
           <div class="export-actions-row">
-            <button id="btnExportCsv" class="btn-secondary">Export Clean CSV</button>
-            <button id="btnExportJson" class="btn-secondary">Export JSON</button>
+            <button id="btnExportCsv" class="btn-secondary">Export Sanitized CSV</button>
+            <button id="btnExportJson" class="btn-secondary">Export Analysis JSON</button>
           </div>
         </div>
 
-        <div class="card policy-card">
-          <h3 class="policy-heading">Cyber Law & Privacy Compliance</h3>
-          <p>Complies with GDPR (Art. 13/14), CCPA/CPRA, India DPDP Act 2023, and COPPA.</p>
-          <a href="privacy_policy.html" class="policy-link" target="_blank">Read Full Legal Privacy Policy →</a>
+        <!-- Separate AdMob Container at bottom of settings -->
+        <div id="adBannerContainer" class="ad-banner-box">
+          <div class="ad-header-strip">
+            <span class="ad-badge">Ad</span>
+            <span class="ad-label">Sponsored • AdMob Network</span>
+          </div>
+          <div class="ad-content">
+            <strong>Sentient Desktop Studio</strong>
+            <p>Explore large conversations with dual-monitor Matplotlib charts on PC.</p>
+          </div>
         </div>
       </section>
 
-      <!-- AdMob Native Banner Container -->
-      <div id="adBannerContainer" class="ad-banner-card">
-        <div class="ad-header-strip">
-          <span class="ad-sponsored-badge">Ad</span>
-          <span class="ad-network-label">Sponsored • AdMob Network</span>
-        </div>
-        <div class="ad-content-box">
-          <span class="ad-headline">Local AI Enterprise Studio</span>
-          <span class="ad-subtext">Upgrade for automated team sentiment alerts.</span>
-        </div>
-      </div>
-
     </main>
 
-    <!-- Slide-Up Detail Context Drawer / Bottom Sheet -->
+    <!-- Slide-Up Detail Context Drawer (Modal Bottom Sheet) -->
     <div id="detailContextDrawer" class="context-drawer hidden">
       <div class="drawer-drag-handle" id="drawerDragHandle"></div>
       <div class="drawer-header">
         <div>
           <h3 id="drawerTurnTitle">Turn # Details</h3>
-          <span id="drawerSpeakerBadge" class="speaker-pill">Speaker</span>
+          <span id="drawerSpeakerBadge" class="speaker-pill">Participant</span>
         </div>
         <button id="closeDrawerBtn" class="btn-close-drawer">✕</button>
       </div>
@@ -314,9 +314,7 @@
         <div class="drawer-utterance-quote">
           <p id="drawerUtteranceText">"Utterance text..."</p>
         </div>
-        <div class="drawer-probabilities" id="drawerProbabilities">
-          <!-- Probabilities -->
-        </div>
+        <div class="drawer-probabilities" id="drawerProbabilities"></div>
         <div class="drawer-context-box">
           <strong>Preceding Dialogue Context:</strong>
           <div id="drawerContextTurns" class="context-turns-list"></div>
@@ -324,7 +322,7 @@
       </div>
     </div>
 
-    <!-- Fixed Bottom Ergonomic Navigation Bar -->
+    <!-- Fixed Bottom Labeled Navigation Bar -->
     <nav class="bottom-nav">
       <button class="bottom-nav-btn active" data-target="sec-overview">
         <span class="nav-icon">📊</span>
@@ -334,17 +332,17 @@
         <span class="nav-icon">📈</span>
         <span class="nav-text">Timeline</span>
       </button>
-      <button class="bottom-nav-btn" data-target="sec-speakers">
+      <button class="bottom-nav-btn" data-target="sec-people">
         <span class="nav-icon">👥</span>
-        <span class="nav-text">Speakers</span>
+        <span class="nav-text">People</span>
       </button>
       <button class="bottom-nav-btn" data-target="sec-messages">
         <span class="nav-icon">💬</span>
         <span class="nav-text">Messages</span>
       </button>
-      <button class="bottom-nav-btn" data-target="sec-insights">
-        <span class="nav-icon">💡</span>
-        <span class="nav-text">Insights</span>
+      <button class="bottom-nav-btn" data-target="sec-guide">
+        <span class="nav-icon">📖</span>
+        <span class="nav-text">Guide</span>
       </button>
     </nav>
 

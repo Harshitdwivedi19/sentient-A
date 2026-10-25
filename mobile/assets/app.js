@@ -1,7 +1,8 @@
 /* mobile/assets/app.js
- * High-Performance Conversation Trajectory Studio
- * Optimized for large-scale conversations with downsampled canvas charts,
- * windowed message streaming, and 100% on-device privacy.
+ * High-Performance Conversation Tone & Trajectory Studio
+ * Optimized for Android Mobile & Tablet Viewports
+ * Features: Peak-preserving bucket downsampling, windowed message streaming,
+ * contextual dialogue drawers, plain-language guide, and 100% on-device processing.
  */
 
 const PRESETS = {
@@ -44,7 +45,7 @@ let activeView = "sec-overview";
 let activeTimelinePreset = "all";
 let isTableMode = false;
 
-// Filter & Pagination State for Messages
+// Filter & Pagination State
 let searchQuery = "";
 let filterSpeaker = "all";
 let filterSentiment = "all";
@@ -61,15 +62,14 @@ document.addEventListener("DOMContentLoaded", () => {
   setupDrawerControls();
   setupExportActions();
 
-  // Load initial preset
+  // Load initial demonstration chat
   loadConversation("conflict_recon");
 });
 
 // ---------------------------------------------------------------------------
-// 1. NAVIGATION (BOTTOM NAV & SUB-NAV PILLS)
+// 1. NAVIGATION (LABELED BOTTOM NAV & SETTINGS ACCESS)
 // ---------------------------------------------------------------------------
 function setupNavigation() {
-  // Bottom Navigation
   const bottomBtns = document.querySelectorAll(".bottom-nav-btn");
   bottomBtns.forEach(btn => {
     btn.addEventListener("click", () => {
@@ -78,38 +78,24 @@ function setupNavigation() {
 
       bottomBtns.forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
-
-      // Reset sub-nav pill to 'Primary Views'
-      document.querySelectorAll(".sub-nav-pill").forEach(p => p.classList.remove("active"));
-      const mainPill = document.querySelector("[data-sub='main']");
-      if (mainPill) mainPill.classList.add("active");
     });
   });
 
-  // Top Sub-Nav Pills (Topics & Settings)
-  const subPills = document.querySelectorAll(".sub-nav-pill");
-  subPills.forEach(pill => {
-    pill.addEventListener("click", () => {
-      const sub = pill.dataset.sub;
-      subPills.forEach(p => p.classList.remove("active"));
-      pill.classList.add("active");
-
-      if (sub === "main") {
-        const activeBottom = document.querySelector(".bottom-nav-btn.active");
-        if (activeBottom) {
-          switchToView(activeBottom.dataset.target);
-        }
-      } else {
-        switchToView(sub);
-      }
+  // Settings Gear in Masthead
+  const settingsBtn = document.getElementById("openSettingsBtn");
+  if (settingsBtn) {
+    settingsBtn.addEventListener("click", () => {
+      switchToView("sec-settings");
+      bottomBtns.forEach(b => b.classList.remove("active"));
     });
-  });
+  }
 
   // Overview "Deep View" Link
   const deepLink = document.getElementById("btnGoToDeepTimeline");
   if (deepLink) {
     deepLink.addEventListener("click", () => {
-      document.querySelector("[data-target='sec-timeline']").click();
+      const timelineBtn = document.querySelector("[data-target='sec-timeline']");
+      if (timelineBtn) timelineBtn.click();
     });
   }
 }
@@ -122,19 +108,15 @@ function switchToView(viewId) {
     targetSec.classList.add("active");
   }
 
-  // Trigger view-specific rendering
+  // Trigger view updates
   if (viewId === "sec-overview") {
     renderOverviewTimeline();
   } else if (viewId === "sec-timeline") {
     renderDeepTimeline();
-  } else if (viewId === "sec-speakers") {
+  } else if (viewId === "sec-people") {
     renderSpeakersView();
-  } else if (viewId === "sec-topics") {
-    renderTreemapView();
   } else if (viewId === "sec-messages") {
     renderMessagesList();
-  } else if (viewId === "sec-insights") {
-    renderInsightsView();
   }
 }
 
@@ -146,8 +128,7 @@ function setupConversationSelector() {
   if (!sel) return;
 
   sel.addEventListener("change", (e) => {
-    const val = e.target.value;
-    loadConversation(val);
+    loadConversation(e.target.value);
   });
 }
 
@@ -173,7 +154,6 @@ function setupFileUpload() {
         text: text
       };
 
-      // Add to select
       const sel = document.getElementById("headerConvSelect");
       const opt = document.createElement("option");
       opt.value = key;
@@ -196,20 +176,16 @@ function loadConversation(key) {
   const nameEl = document.getElementById("settingsDatasetName");
   if (nameEl) nameEl.textContent = item.name;
 
-  // Run sentiment analysis
   currentAnalysis = runStandaloneAnalysis(item.text, 0.4);
 
-  // Update speakers dropdown
   populateSpeakerFilterDropdown();
 
-  // Reset filter and pagination
   searchQuery = "";
   filterSpeaker = "all";
   filterSentiment = "all";
   visibleMessageCount = 25;
   applyFilters();
 
-  // Update UI stats
   updateOverviewKpis();
   switchToView(activeView);
 }
@@ -227,11 +203,15 @@ function updateOverviewKpis() {
   const vol = stats.volatility || 0.0;
   const tps = stats.turning_points || [];
 
-  // Update Coverage Banner
+  const participants = Array.from(new Set(preds.map(p => p.speaker)));
+
+  // Update Scope Banner
   const badge = document.getElementById("overviewCoverageBadge");
-  const desc = document.getElementById("overviewCoverageDesc");
-  if (badge) badge.textContent = `${preds.length} Analyzed`;
-  if (desc) desc.textContent = `Analyzed ${preds.length} utterances with 0 errors. Certainty: 94% (estimate).`;
+  const details = document.getElementById("overviewScopeDetails");
+  if (badge) badge.textContent = `${preds.length} Analyzed (100%)`;
+  if (details) {
+    details.textContent = `${preds.length} messages analyzed across ${participants.length} participants (${participants.join(', ')}). 0 messages skipped.`;
+  }
 
   // Update KPI values
   const elMood = document.getElementById("kpiAvgMood");
@@ -239,27 +219,28 @@ function updateOverviewKpis() {
   const elStab = document.getElementById("kpiStability");
   const elTP = document.getElementById("kpiTurningPoints");
 
-  const moodEmoji = meanP > 0.15 ? "😊 Positive" : (meanP < -0.15 ? "😡 Tense" : "😐 Neutral");
-  if (elMood) elMood.textContent = `${meanP >= 0 ? "+" : ""}${meanP.toFixed(2)} ${moodEmoji}`;
+  const moodDesc = meanP > 0.15 ? "Positive" : (meanP < -0.15 ? "Critical" : "Neutral");
+  if (elMood) elMood.textContent = `${meanP >= 0 ? "+" : ""}${meanP.toFixed(2)} (${moodDesc})`;
   if (elShift) elShift.textContent = `${drift >= 0 ? "+" : ""}${drift.toFixed(2)} ${drift >= 0 ? "↗" : "↘"}`;
-  if (elStab) elStab.textContent = `${Math.max(0, Math.min(100, Math.round((1 - vol) * 100)))}% 🎯`;
-  if (elTP) elTP.textContent = `${tps.length} Shifts ⚡`;
+  if (elStab) elStab.textContent = `${Math.max(0, Math.min(100, Math.round((1 - vol) * 100)))}%`;
+  if (elTP) elTP.textContent = `${tps.length} Shifts`;
 
   // Render Notable Moments list
   const momentsContainer = document.getElementById("notableMomentsList");
   if (momentsContainer) {
     momentsContainer.innerHTML = "";
     if (tps.length === 0) {
-      momentsContainer.innerHTML = `<div class="moment-item"><p class="text-muted">No abrupt turning points detected. Conversation was emotionally steady.</p></div>`;
+      momentsContainer.innerHTML = `<div class="moment-item"><p class="text-muted">No abrupt tone shifts detected. Tone remained stable throughout.</p></div>`;
     } else {
-      tps.slice(0, 4).forEach((tp, idx) => {
+      tps.slice(0, 4).forEach((tp) => {
         const item = document.createElement("div");
         item.className = "moment-item clickable";
         const isPos = (tp.delta || 0) > 0;
+        const deltaLabel = isPos ? "Shifted Positive" : "Shifted Negative";
         item.innerHTML = `
           <div class="moment-header">
             <strong>Turn #${tp.turn_index} • ${escapeHtml(tp.speaker)}</strong>
-            <span class="moment-delta ${isPos ? 'text-green' : 'text-coral'}">${isPos ? '📈 +' : '📉 '}${(tp.delta || 0).toFixed(2)}</span>
+            <span class="moment-delta ${isPos ? 'text-green' : 'text-red'}">${deltaLabel} (Δ ${(tp.delta || 0).toFixed(2)})</span>
           </div>
           <p class="moment-quote">"${escapeHtml(tp.text)}"</p>
         `;
@@ -273,7 +254,7 @@ function updateOverviewKpis() {
 }
 
 // ---------------------------------------------------------------------------
-// 4. LARGE-DATA DOWNSAMPLING & TIMELINE RENDERING
+// 4. LARGE-DATA DOWNSAMPLING & DUAL TIMELINE RENDERING
 // ---------------------------------------------------------------------------
 function downsampleTimeline(predictions, maxBuckets = 50) {
   const n = predictions.length;
@@ -362,7 +343,7 @@ function renderDeepTimeline() {
     preds = preds.slice(0, Math.floor(n / 2));
   } else if (activeTimelinePreset === "half2" && n > 2) {
     preds = preds.slice(Math.floor(n / 2));
-  } else if (activeTimelinePreset === "peak" && n > 2) {
+  } else if (activeTimelinePreset === "shifts" && n > 2) {
     let minIdx = 0;
     let minVal = 999;
     preds.forEach((p, idx) => {
@@ -393,9 +374,9 @@ function drawDualTimelineOnContext(ctx, data, w, h) {
   const n = data.length;
   if (n === 0) return;
 
-  // Zero axis line for polarity
+  // Zero axis line
   const zeroY = pad.top + lineH / 2;
-  ctx.strokeStyle = "#2E3035";
+  ctx.strokeStyle = "#CBD5E1";
   ctx.lineWidth = 1;
   ctx.setLineDash([4, 4]);
   ctx.beginPath();
@@ -405,15 +386,15 @@ function drawDualTimelineOnContext(ctx, data, w, h) {
   ctx.setLineDash([]);
 
   // Axis Labels
-  ctx.fillStyle = "#A29F95";
+  ctx.fillStyle = "#64748B";
   ctx.font = "9px sans-serif";
   ctx.textAlign = "right";
   ctx.fillText("+1.0", pad.left - 6, pad.top + 10);
   ctx.fillText(" 0.0", pad.left - 6, zeroY + 3);
   ctx.fillText("-1.0", pad.left - 6, pad.top + lineH);
 
-  // Volatility Envelope (Shaded min-max band)
-  ctx.fillStyle = "rgba(224, 122, 95, 0.15)";
+  // Volatility Envelope (Shaded min-max band in calm neutral blue)
+  ctx.fillStyle = "rgba(37, 99, 235, 0.10)";
   ctx.beginPath();
   data.forEach((d, i) => {
     const x = pad.left + (i / Math.max(1, n - 1)) * plotW;
@@ -429,9 +410,9 @@ function drawDualTimelineOnContext(ctx, data, w, h) {
   ctx.closePath();
   ctx.fill();
 
-  // Central Sentiment Trajectory Curve
-  ctx.strokeStyle = "#E07A5F";
-  ctx.lineWidth = 2.2;
+  // Primary Tone Trajectory Curve (Action Blue #2563EB)
+  ctx.strokeStyle = "#2563EB";
+  ctx.lineWidth = 2.0;
   ctx.beginPath();
   data.forEach((d, i) => {
     const x = pad.left + (i / Math.max(1, n - 1)) * plotW;
@@ -441,29 +422,29 @@ function drawDualTimelineOnContext(ctx, data, w, h) {
   });
   ctx.stroke();
 
-  // Draw points
+  // Points (Color-coded by tone: Green positive, Red negative)
   data.forEach((d, i) => {
     const x = pad.left + (i / Math.max(1, n - 1)) * plotW;
     const y = pad.top + (1 - (d.mean_score + 1) / 2) * lineH;
-    ctx.fillStyle = d.mean_score >= 0 ? "#81B29A" : "#E07A5F";
+    ctx.fillStyle = d.mean_score > 0.15 ? "#059669" : (d.mean_score < -0.15 ? "#DC2626" : "#D97706");
     ctx.beginPath();
     ctx.arc(x, y, 3.2, 0, Math.PI * 2);
     ctx.fill();
   });
 
-  // Message Density Bar Chart at bottom
+  // Message Volume Bars at bottom
   const maxVol = Math.max(...data.map(d => d.volume), 1);
   const barW = Math.max(2, (plotW / n) * 0.7);
 
   data.forEach((d, i) => {
     const x = pad.left + (i / Math.max(1, n - 1)) * plotW;
     const bHeight = (d.volume / maxVol) * barH;
-    ctx.fillStyle = "rgba(61, 90, 128, 0.75)";
+    ctx.fillStyle = "rgba(100, 116, 139, 0.55)";
     ctx.fillRect(x - barW / 2, barBaseY - bHeight, barW, bHeight);
   });
 
   // X-axis turn progress labels
-  ctx.fillStyle = "#A29F95";
+  ctx.fillStyle = "#64748B";
   ctx.font = "9px sans-serif";
   ctx.textAlign = "left";
   ctx.fillText(`Turn ${data[0].turn_start}`, pad.left, h - 8);
@@ -472,7 +453,6 @@ function drawDualTimelineOnContext(ctx, data, w, h) {
 }
 
 function setupTimelineControls() {
-  // Preset buttons
   const pills = document.querySelectorAll("[data-preset]");
   pills.forEach(pill => {
     pill.addEventListener("click", () => {
@@ -483,7 +463,6 @@ function setupTimelineControls() {
     });
   });
 
-  // Toggle Table Mode Button
   const toggleBtn = document.getElementById("toggleTableModeBtn");
   if (toggleBtn) {
     toggleBtn.addEventListener("click", () => {
@@ -512,7 +491,7 @@ function renderAccessibleTimelineTable() {
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>Turns ${d.turn_start}–${d.turn_end}</td>
-      <td class="${d.mean_score >= 0 ? 'text-green' : 'text-coral'}">${d.mean_score >= 0 ? '+' : ''}${d.mean_score.toFixed(2)}</td>
+      <td class="${d.mean_score >= 0 ? 'text-green' : 'text-red'}">${d.mean_score >= 0 ? '+' : ''}${d.mean_score.toFixed(2)}</td>
       <td>[${d.min_score.toFixed(2)}, ${d.max_score.toFixed(2)}]</td>
       <td>${d.volume}</td>
     `;
@@ -521,7 +500,7 @@ function renderAccessibleTimelineTable() {
 }
 
 // ---------------------------------------------------------------------------
-// 5. SPEAKERS & PARTICIPATION
+// 5. PEOPLE & PARTICIPATION
 // ---------------------------------------------------------------------------
 function renderSpeakersView() {
   const grid = document.getElementById("speakersCardsGrid");
@@ -531,7 +510,6 @@ function renderSpeakersView() {
   const total = preds.length;
   if (total === 0) return;
 
-  // Aggregate by speaker
   const spkStats = {};
   preds.forEach(p => {
     const s = p.speaker || "Unknown";
@@ -555,11 +533,11 @@ function renderSpeakersView() {
     card.innerHTML = `
       <div class="speaker-top-row">
         <strong>${escapeHtml(s)}</strong>
-        <span class="speaker-share">${pct}% (${obj.count} msgs)</span>
+        <span class="speaker-share">${pct}% (${obj.count} messages)</span>
       </div>
       <div class="speaker-stats-row">
-        <span>Average Mood: <strong class="${avg >= 0 ? 'text-green' : 'text-coral'}">${avg >= 0 ? '+' : ''}${avg.toFixed(2)}</strong></span>
-        <span class="text-muted">Range: [${min.toFixed(2)}, ${max.toFixed(2)}]</span>
+        <span>Average Tone: <strong class="${avg >= 0 ? 'text-green' : 'text-red'}">${avg >= 0 ? '+' : ''}${avg.toFixed(2)}</strong></span>
+        <span class="text-muted">Observed Range: [${min.toFixed(2)}, ${max.toFixed(2)}]</span>
       </div>
       <button class="btn-xs-filter" onclick="filterBySpeakerAndOpenMessages('${escapeHtml(s)}')">Filter Messages by ${escapeHtml(s)} →</button>
     `;
@@ -574,7 +552,8 @@ function filterBySpeakerAndOpenMessages(speakerName) {
   const sel = document.getElementById("mobileSpeakerSelect");
   if (sel) sel.value = speakerName;
   applyFilters();
-  document.querySelector("[data-target='sec-messages']").click();
+  const msgBtn = document.querySelector("[data-target='sec-messages']");
+  if (msgBtn) msgBtn.click();
 }
 
 function renderSpeakerAlternationCanvas(preds, spkStats) {
@@ -598,26 +577,24 @@ function renderSpeakerAlternationCanvas(preds, spkStats) {
 
   const rowH = (h - 20) / spkCount;
 
-  // Draw rows
   speakers.forEach((s, idx) => {
     const y = 10 + idx * rowH + rowH / 2;
-    ctx.fillStyle = "#2E3035";
+    ctx.fillStyle = "#E2E8F0";
     ctx.fillRect(80, y - 1, w - 90, 2);
 
-    ctx.fillStyle = "#F8F6EF";
+    ctx.fillStyle = "#0F172A";
     ctx.font = "bold 9px sans-serif";
     ctx.textAlign = "left";
     ctx.fillText(s, 6, y + 3);
   });
 
-  // Plot turn dots
   const n = preds.length;
   preds.forEach(p => {
     const spkIdx = speakers.indexOf(p.speaker);
     if (spkIdx !== -1) {
       const y = 10 + spkIdx * rowH + rowH / 2;
       const x = 80 + (p.turn_id / Math.max(1, n - 1)) * (w - 96);
-      ctx.fillStyle = p.polarity_score >= 0 ? "#81B29A" : "#E07A5F";
+      ctx.fillStyle = p.polarity_score > 0.15 ? "#059669" : (p.polarity_score < -0.15 ? "#DC2626" : "#D97706");
       ctx.beginPath();
       ctx.arc(x, y, 3, 0, Math.PI * 2);
       ctx.fill();
@@ -626,67 +603,7 @@ function renderSpeakerAlternationCanvas(preds, spkStats) {
 }
 
 // ---------------------------------------------------------------------------
-// 6. TOPICS & TREEMAP
-// ---------------------------------------------------------------------------
-function renderTreemapView() {
-  const canvas = document.getElementById("mobileTreemapCanvas");
-  if (!canvas || !currentAnalysis) return;
-
-  const ctx = canvas.getContext("2d");
-  const dpr = window.devicePixelRatio || 1;
-  const rect = canvas.getBoundingClientRect();
-  const w = rect.width || 340;
-  const h = 220;
-
-  canvas.width = w * dpr;
-  canvas.height = h * dpr;
-  ctx.scale(dpr, dpr);
-
-  ctx.clearRect(0, 0, w, h);
-
-  const preds = currentAnalysis.predictions || [];
-  const topicDefs = [
-    { name: "Issues & Technical", keys: ["error", "bug", "fail", "broke", "issue", "problem", "pool", "exhausted", "down"] },
-    { name: "Support & Action", keys: ["help", "look", "assist", "check", "meeting", "sync", "inform", "text"] },
-    { name: "Resolution & Calm", keys: ["fix", "patch", "relief", "awesome", "good", "great", "thanks", "helpful", "done"] }
-  ];
-
-  const clusters = {
-    positive: { count: 0, label: "Positive Feedback", color: "#81B29A" },
-    neutral: { count: 0, label: "Neutral Inquiries", color: "#F2CC8F" },
-    negative: { count: 0, label: "Critical Concerns", color: "#E07A5F" }
-  };
-
-  preds.forEach(p => {
-    const s = p.pred_sentiment || "neutral";
-    if (clusters[s]) clusters[s].count++;
-  });
-
-  const total = preds.length || 1;
-  let curX = 0;
-
-  Object.keys(clusters).forEach(k => {
-    const item = clusters[k];
-    if (item.count > 0) {
-      const itemW = (item.count / total) * w;
-      ctx.fillStyle = item.color;
-      ctx.fillRect(curX, 0, itemW - 2, h);
-
-      ctx.fillStyle = "#111214";
-      ctx.font = "bold 10px sans-serif";
-      ctx.textAlign = "center";
-      if (itemW > 45) {
-        ctx.fillText(item.label, curX + itemW / 2, h / 2 - 4);
-        ctx.font = "9px sans-serif";
-        ctx.fillText(`${item.count} msgs`, curX + itemW / 2, h / 2 + 12);
-      }
-      curX += itemW;
-    }
-  });
-}
-
-// ---------------------------------------------------------------------------
-// 7. SEARCHABLE & FILTERABLE MESSAGES STREAM (WINDOWED)
+// 6. MESSAGES & SEARCH (WINDOWED)
 // ---------------------------------------------------------------------------
 function setupMessageSearchAndFilters() {
   const searchInput = document.getElementById("mobileSearchInput");
@@ -751,7 +668,7 @@ function populateSpeakerFilterDropdown() {
   const preds = currentAnalysis.predictions || [];
   const speakers = Array.from(new Set(preds.map(p => p.speaker)));
 
-  sel.innerHTML = `<option value="all">All Speakers</option>`;
+  sel.innerHTML = `<option value="all">All Participants</option>`;
   speakers.forEach(s => {
     const opt = document.createElement("option");
     opt.value = s;
@@ -778,7 +695,6 @@ function applyFilters() {
     return matchSearch && matchSpeaker && matchSentiment;
   });
 
-  // Update Ribbon
   const ribbon = document.getElementById("activeFilterRibbon");
   const txt = document.getElementById("activeFilterText");
   const activeCount = (searchQuery ? 1 : 0) + (filterSpeaker !== "all" ? 1 : 0) + (filterSentiment !== "all" ? 1 : 0);
@@ -812,7 +728,7 @@ function renderMessagesList() {
   }
 
   if (toShow.length === 0) {
-    container.innerHTML = `<div class="empty-state-card"><p>No messages match the current search or filters.</p></div>`;
+    container.innerHTML = `<div class="empty-card"><p>No messages match the current search or filters.</p></div>`;
     return;
   }
 
@@ -844,7 +760,7 @@ function highlightSearch(text, query) {
 }
 
 // ---------------------------------------------------------------------------
-// 8. DETAIL CONTEXT DRAWER (SLIDE-UP MODAL)
+// 7. DETAIL CONTEXT DRAWER (MODAL BOTTOM SHEET)
 // ---------------------------------------------------------------------------
 function setupDrawerControls() {
   const drawer = document.getElementById("detailContextDrawer");
@@ -870,9 +786,8 @@ function openDetailDrawer(turnId) {
 
   const sentTag = document.getElementById("drawerSentimentTag");
   sentTag.textContent = target.pred_sentiment.toUpperCase();
-  sentTag.className = `sentiment-pill ${target.polarity_score > 0 ? 'pos' : 'neg'}`;
+  sentTag.className = `sentiment-pill ${target.polarity_score > 0 ? 'pos' : (target.polarity_score < 0 ? 'neg' : 'neu')}`;
 
-  // Probabilities
   const probBox = document.getElementById("drawerProbabilities");
   probBox.innerHTML = `
     <span>Pos: ${(target.prob_positive * 100).toFixed(0)}%</span>
@@ -880,7 +795,6 @@ function openDetailDrawer(turnId) {
     <span>Neg: ${(target.prob_negative * 100).toFixed(0)}%</span>
   `;
 
-  // Preceding 3 turns context
   const ctxBox = document.getElementById("drawerContextTurns");
   ctxBox.innerHTML = "";
   const idx = preds.indexOf(target);
@@ -902,67 +816,7 @@ function openDetailDrawer(turnId) {
 }
 
 // ---------------------------------------------------------------------------
-// 9. INSIGHTS & NARRATIVE ARCHETYPES
-// ---------------------------------------------------------------------------
-function renderInsightsView() {
-  const container = document.getElementById("insightsContainer");
-  if (!container || !currentAnalysis) return;
-
-  container.innerHTML = "";
-  const stats = currentAnalysis.trajectory_stats || {};
-  const tps = stats.turning_points || [];
-  const preds = currentAnalysis.predictions || [];
-
-  // Narrative shape classification
-  const drift = stats.net_change || 0;
-  const meanP = stats.mean_polarity || 0;
-  let archetype = "Steady Emotional Journey";
-  if (drift > 0.35) archetype = "Rags to Riches (Continual Rise)";
-  else if (drift < -0.35) archetype = "Tragedy (Continual Decline)";
-  else if (tps.length > 0) archetype = "Cinderella / De-escalation Arc";
-
-  const cards = [
-    {
-      title: "Story Arc Classification",
-      desc: `The emotional arc is diagnosed as '${archetype}'.`,
-      evidence: `Based on trajectory of ${preds.length} sequential turns.`,
-      action: "Inspect in Timeline",
-      target: "sec-timeline"
-    }
-  ];
-
-  if (tps.length > 0) {
-    const sharpest = tps[0];
-    cards.push({
-      title: "Sharpest Tone Shift Moment",
-      desc: `Turn #${sharpest.turn_index} by ${sharpest.speaker} experienced a Δ${(sharpest.delta || 0).toFixed(2)} shift.`,
-      evidence: `Utterance: "${sharpest.text}"`,
-      action: "View in Messages",
-      target: "sec-messages"
-    });
-  }
-
-  cards.forEach(c => {
-    const el = document.createElement("div");
-    el.className = "insight-card";
-    el.innerHTML = `
-      <div class="insight-header">
-        <strong>${c.title}</strong>
-      </div>
-      <p class="insight-desc">${c.desc}</p>
-      <span class="insight-evidence">${c.evidence}</span>
-      <button class="btn-xs-action">${c.action} →</button>
-    `;
-    el.querySelector("button").addEventListener("click", () => {
-      switchToView(c.target);
-      document.querySelector(`[data-target='${c.target}']`).click();
-    });
-    container.appendChild(el);
-  });
-}
-
-// ---------------------------------------------------------------------------
-// 10. EXPORTS & SETTINGS
+// 8. EXPORTS & DATA SETTINGS
 // ---------------------------------------------------------------------------
 function setupExportActions() {
   const csvBtn = document.getElementById("btnExportCsv");
@@ -973,7 +827,7 @@ function setupExportActions() {
     csvBtn.addEventListener("click", () => {
       if (!currentAnalysis) return;
       const csv = generateSanitizedCsv(currentAnalysis.predictions);
-      downloadFile("sentiment_trajectory_sanitized.csv", csv, "text/csv");
+      downloadFile("conversation_tone_sanitized.csv", csv, "text/csv");
     });
   }
 
@@ -981,17 +835,16 @@ function setupExportActions() {
     jsonBtn.addEventListener("click", () => {
       if (!currentAnalysis) return;
       const json = JSON.stringify(currentAnalysis, null, 2);
-      downloadFile("sentiment_trajectory_analysis.json", json, "application/json");
+      downloadFile("conversation_tone_analysis.json", json, "application/json");
     });
   }
 
   if (purgeBtn) {
     purgeBtn.addEventListener("click", () => {
-      if (confirm("Purge conversation data from device memory?")) {
+      if (confirm("Permanently discard conversation data from device memory?")) {
         currentAnalysis = null;
         updateOverviewKpis();
-        showToast("Memory purged successfully.");
-        document.getElementById("sec-overview").innerHTML = `<div class="card"><p>Data purged. Select a sample above to reload.</p></div>`;
+        showToast("Conversation data purged from local memory.");
       }
     });
   }
@@ -1018,7 +871,7 @@ function downloadFile(name, content, mime) {
 }
 
 // ---------------------------------------------------------------------------
-// 11. STANDALONE LOCAL CLIENT-SIDE ANALYSIS ENGINE
+// 9. LOCAL STANDALONE SENTIMENT ENGINE
 // ---------------------------------------------------------------------------
 function runStandaloneAnalysis(rawText, tau) {
   const lines = rawText.split("\n").map(l => l.trim()).filter(l => l.length > 0);
@@ -1029,7 +882,7 @@ function runStandaloneAnalysis(rawText, tau) {
   const scores = [];
 
   lines.forEach((line, idx) => {
-    let speaker = `Speaker ${(idx % 2) + 1}`;
+    let speaker = `Participant ${(idx % 2) + 1}`;
     let text = line;
     if (line.includes("]") && line.includes(":")) {
       const p = line.split("]")[1].split(":");
