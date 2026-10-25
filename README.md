@@ -28,7 +28,6 @@
   <a href="#benchmark-evaluation">Benchmark Evaluation</a> •
   <a href="#quick-start--installation">Quick Start</a> •
   <a href="#usage-guide">Usage Guide</a> •
-  <a href="#project-structure">Project Structure</a> •
   <a href="#limitations--epistemic-boundaries">Limitations</a> •
   <a href="#license">License</a>
 </p>
@@ -381,84 +380,6 @@ python scripts/build_mobile_apk.py
 
 # Rebuild official Google Play Store Android App Bundle (.aab)
 python scripts/build_play_store_bundle.py
-```
-
----
-
-## Project Structure
-
-```
-sentiment-trajectory-analysis/
-├── assets/
-│   ├── branding/
-│   │   ├── logo_master_512.png         # Master 512x512 high-res branding icon
-│   │   ├── play_store_feature_graphic_1024x500.png # Google Play Store banner
-│   │   ├── app_icon.ico                # Windows desktop executable icon
-│   │   └── android/                    # Multi-density mipmap icons (mdpi to xxxhdpi)
-│   ├── demo_trajectory_plot.png        # Generated demonstration trajectory plot
-│   └── sentiment-trajectory-banner.png # GitHub README repository banner
-├── build_tools/
-│   └── android/                        # Standalone Android CLI toolchain
-│       ├── aapt2.exe                   # Google Android resource compiler
-│       ├── r8.jar                      # Google D8 Dalvik bytecode converter
-│       ├── bundletool.jar              # Official Google Play App Bundle builder
-│       ├── apksig.jar                  # Official Google APK signature engine (v1-v4)
-│       └── android.jar                 # Android API platform stubs
-├── configs/
-│   └── config.yaml                     # Pinned hyperparameters, paths, and label mappings
-├── data/
-│   ├── raw/                            # Raw MELD benchmark CSV files
-│   └── processed/                      # Schema-normalized train.csv, val.csv, test.csv
-├── dist/
-│   ├── SentimentTrajectory.aab         # Official Google Play Store Android App Bundle
-│   ├── SentimentTrajectory_release.apk # Production-signed 4-byte aligned Android APK
-│   ├── release.keystore                # Production cryptographic keystore
-│   └── SentimentTrajectoryStudio/      # Compiled Windows desktop distribution directory
-├── docs/
-│   └── privacy_policy.html             # Standalone 100% on-device privacy policy web page
-├── mobile/                             # Android application source tree
-│   ├── AndroidManifest.xml             # Manifest targeting Android 14 (API 34)
-│   ├── assets/                         # Responsive HTML5/JS/CSS mobile app
-│   │   ├── app.js                      # Canvas trajectory renderer & standalone engine
-│   │   ├── index.html                  # Mobile 4-tab stepped interface
-│   │   └── style.css                   # Mobile warm ivory & charcoal styling
-│   └── src/                            # Native Java MainActivity & WebAppInterface
-├── models/
-│   ├── baseline_tfidf/                 # Trained TF-IDF vectorizer & Logistic Regression model
-│   ├── roberta_context/                # Context-aware fine-tuned RoBERTa safetensors
-│   └── roberta_independent/            # Independent utterance RoBERTa safetensors
-├── outputs/
-│   ├── figures/                        # Generated confusion matrices & trajectory figures
-│   └── metrics/                        # Benchmark evaluation JSON records
-├── scripts/
-│   ├── build_desktop_exe.py            # PyInstaller desktop compilation pipeline
-│   ├── build_mobile_apk.py             # Android APK build, zipalign & apksig pipeline
-│   ├── build_play_store_bundle.py      # Google Play .aab bundle compilation pipeline
-│   ├── generate_branding.py            # Unique visual identity generator
-│   └── setup_android_tools.py          # Standalone Android toolchain fetcher
-├── src/
-│   ├── api.py                          # FastAPI REST service & mobile asset mount
-│   ├── context.py                      # Context window builder & conversation boundary guard
-│   ├── desktop_app.py                  # Standalone Tkinter desktop studio application
-│   ├── evaluate.py                     # Evaluation metrics, calibration, and error analysis
-│   ├── explain.py                      # Evidence-grounded trajectory narrative report generator
-│   ├── predict.py                      # Unified inference pipeline with frozen .exe support
-│   ├── prepare_data.py                 # MELD dataset ingestion & schema validation
-│   ├── train.py                        # Model training routines (TF-IDF & RoBERTa)
-│   ├── trajectory.py                   # Polarity scoring, temporal dynamics & turning points
-│   └── whatsapp_parser.py              # Exported WhatsApp chat regex parser & sessionizer
-├── tests/
-│   ├── test_baseline.py                # Unit tests for baseline vectorizer & model artifacts
-│   ├── test_context.py                 # Context window boundary & zero-leakage tests
-│   ├── test_data_integrity.py          # Schema adherence & monotonic turn ordering tests
-│   ├── test_desktop_app.py             # GUI presets & Risk #87 CSV defense tests
-│   ├── test_mobile_and_api.py          # APK/AAB binary integrity & REST endpoint tests
-│   ├── test_roberta.py                 # RoBERTa model artifact & probability tests
-│   └── test_whatsapp_parser.py         # WhatsApp format parsing & multiline tests
-├── PLAY_STORE_SUBMISSION_GUIDE.md      # Complete step-by-step Google Play publishing guide
-├── PRIVACY_POLICY.md                   # Markdown privacy policy
-├── pytest.ini                          # Test configuration
-└── requirements.txt                    # Pinned Python dependencies
 ```
 
 ---
