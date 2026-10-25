@@ -908,6 +908,12 @@ canvas {
   border-radius: 8px;
   padding: 10px 12px;
   margin-top: 14px;
+  position: relative;
+  transition: background 0.15s ease;
+}
+
+.ad-banner-box:active {
+  background: #E2E8F0;
 }
 
 .ad-header-strip {
@@ -934,6 +940,7 @@ canvas {
 .ad-content strong {
   font-size: 0.82rem;
   display: block;
+  color: var(--text-main);
 }
 
 .ad-content p {

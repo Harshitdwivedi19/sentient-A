@@ -427,7 +427,7 @@ class SentimentTrajectoryDesktopApp:
 
         # Active Filter Status Card in Sidebar
         f_box = tk.Frame(self.sidebar_frame, bg=self.colors["card_bg"], padx=12, pady=10, highlightbackground=self.colors["border"], highlightthickness=1)
-        f_box.pack(side=tk.BOTTOM, fill=tk.X, padx=12, pady=12)
+        f_box.pack(side=tk.BOTTOM, fill=tk.X, padx=12, pady=(0, 10))
 
         self.sidebar_filter_lbl = tk.Label(
             f_box,
@@ -450,6 +450,18 @@ class SentimentTrajectoryDesktopApp:
             command=self._clear_all_filters
         )
         self.sidebar_clear_btn.pack(fill=tk.X, pady=(6, 0))
+
+        # Sponsored Ad Banner Card in Sidebar
+        sponsor_box = tk.Frame(self.sidebar_frame, bg=self.colors["card_inset"], padx=10, pady=8, highlightbackground=self.colors["border"], highlightthickness=1)
+        sponsor_box.pack(side=tk.BOTTOM, fill=tk.X, padx=12, pady=(0, 8))
+
+        s_top = tk.Frame(sponsor_box, bg=self.colors["card_inset"])
+        s_top.pack(fill=tk.X)
+        tk.Label(s_top, text="AD", font=("Segoe UI", 7, "bold"), bg=self.colors["border"], fg=self.colors["text_muted"], padx=3, pady=1).pack(side=tk.LEFT)
+        tk.Label(s_top, text="Sponsored • AdMob Network", font=("Segoe UI", 7), bg=self.colors["card_inset"], fg=self.colors["text_muted"], padx=4).pack(side=tk.LEFT)
+
+        tk.Label(sponsor_box, text="Sentient Cloud Analytics", font=("Segoe UI", 8, "bold"), bg=self.colors["card_inset"], fg=self.colors["text_main"]).pack(anchor="w", pady=(3, 1))
+        tk.Label(sponsor_box, text="Real-time multi-channel conversation tone alerts.", font=("Segoe UI", 7), bg=self.colors["card_inset"], fg=self.colors["text_muted"], wraplength=180, justify="left").pack(anchor="w")
 
     def _build_status_bar(self):
         self.status_var = tk.StringVar(value="Ready")
@@ -850,6 +862,16 @@ class SentimentTrajectoryDesktopApp:
             fg=self.colors["text_muted"]
         ).pack(side=tk.LEFT)
 
+        # Overview Sponsored Banner Ribbon
+        ad_ribbon = tk.Frame(container, bg=self.colors["card_bg"], padx=12, pady=6, highlightbackground=self.colors["border"], highlightthickness=1)
+        ad_ribbon.pack(fill=tk.X, pady=(8, 0))
+
+        ad_top = tk.Frame(ad_ribbon, bg=self.colors["card_bg"])
+        ad_top.pack(fill=tk.X)
+        tk.Label(ad_top, text="AD", font=("Segoe UI", 7, "bold"), bg=self.colors["card_inset"], fg=self.colors["text_muted"], padx=3, pady=1).pack(side=tk.LEFT)
+        tk.Label(ad_top, text="Sponsored • AdMob Network", font=("Segoe UI", 8), bg=self.colors["card_bg"], fg=self.colors["text_muted"], padx=6).pack(side=tk.LEFT)
+        tk.Label(ad_top, text="Enterprise NLP Toolkit • Scalable dialogue sentiment analysis for Slack, Discord & Teams.", font=("Segoe UI", 8), bg=self.colors["card_bg"], fg=self.colors["text_main"], padx=10).pack(side=tk.LEFT)
+
     def _embed_overview_chart(self, parent_widget: tk.Widget):
         downsampled = self._downsample_timeline_data(self.current_df, max_buckets=45)
 
@@ -1043,6 +1065,15 @@ class SentimentTrajectoryDesktopApp:
         toolbar = NavigationToolbar2Tk(canvas, toolbar_frame)
         toolbar.update()
 
+        # Timeline Sponsored Ad Banner Ribbon
+        ad_tl = tk.Frame(self.timeline_content_box, bg=self.colors["card_inset"], padx=10, pady=5)
+        ad_tl.pack(fill=tk.X)
+        ad_tl_inner = tk.Frame(ad_tl, bg=self.colors["card_inset"])
+        ad_tl_inner.pack(fill=tk.X)
+        tk.Label(ad_tl_inner, text="AD", font=("Segoe UI", 7, "bold"), bg=self.colors["border"], fg=self.colors["text_muted"], padx=3, pady=1).pack(side=tk.LEFT)
+        tk.Label(ad_tl_inner, text="Sponsored • AdMob Network", font=("Segoe UI", 7), bg=self.colors["card_inset"], fg=self.colors["text_muted"], padx=6).pack(side=tk.LEFT)
+        tk.Label(ad_tl_inner, text="High-Throughput Sentiment Batch Inference APIs — Explore RoBERTa Cloud Hosting.", font=("Segoe UI", 8), bg=self.colors["card_inset"], fg=self.colors["text_main"], padx=10).pack(side=tk.LEFT)
+
     def _render_timeline_accessible_table(self):
         container = tk.Frame(self.timeline_content_box, bg=self.colors["card_bg"], padx=14, pady=12)
         container.pack(fill=tk.BOTH, expand=True)
@@ -1165,6 +1196,15 @@ class SentimentTrajectoryDesktopApp:
         canvas.draw()
         canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
+        # People Sponsored Ad Banner Ribbon
+        ad_ppl = tk.Frame(container, bg=self.colors["card_inset"], padx=10, pady=5, highlightbackground=self.colors["border"], highlightthickness=1)
+        ad_ppl.pack(fill=tk.X, pady=(10, 0))
+        ad_ppl_inner = tk.Frame(ad_ppl, bg=self.colors["card_inset"])
+        ad_ppl_inner.pack(fill=tk.X)
+        tk.Label(ad_ppl_inner, text="AD", font=("Segoe UI", 7, "bold"), bg=self.colors["border"], fg=self.colors["text_muted"], padx=3, pady=1).pack(side=tk.LEFT)
+        tk.Label(ad_ppl_inner, text="Sponsored • AdMob Network", font=("Segoe UI", 7), bg=self.colors["card_inset"], fg=self.colors["text_muted"], padx=6).pack(side=tk.LEFT)
+        tk.Label(ad_ppl_inner, text="Team Communication Intelligence & Sentiment Cohort Analytics.", font=("Segoe UI", 8), bg=self.colors["card_inset"], fg=self.colors["text_main"], padx=10).pack(side=tk.LEFT)
+
     def _filter_and_jump_to_speaker(self, speaker_name: str):
         self.filter_speaker_var.set(speaker_name)
         self._apply_filters()
@@ -1221,6 +1261,15 @@ class SentimentTrajectoryDesktopApp:
         canvas = FigureCanvasTkAgg(fig, master=t_box)
         canvas.draw()
         canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+
+        # Topics Sponsored Ad Banner Ribbon
+        ad_top = tk.Frame(container, bg=self.colors["card_inset"], padx=10, pady=5, highlightbackground=self.colors["border"], highlightthickness=1)
+        ad_top.pack(fill=tk.X, pady=(10, 0))
+        ad_top_inner = tk.Frame(ad_top, bg=self.colors["card_inset"])
+        ad_top_inner.pack(fill=tk.X)
+        tk.Label(ad_top_inner, text="AD", font=("Segoe UI", 7, "bold"), bg=self.colors["border"], fg=self.colors["text_muted"], padx=3, pady=1).pack(side=tk.LEFT)
+        tk.Label(ad_top_inner, text="Sponsored • AdMob Network", font=("Segoe UI", 7), bg=self.colors["card_inset"], fg=self.colors["text_muted"], padx=6).pack(side=tk.LEFT)
+        tk.Label(ad_top_inner, text="Customer Feedback Clustering & Topic Modeling Suite for Enterprise Support.", font=("Segoe UI", 8), bg=self.colors["card_inset"], fg=self.colors["text_main"], padx=10).pack(side=tk.LEFT)
 
     # -------------------------------------------------------------------------
     # VIEW 5: MESSAGES (SEARCHABLE & FILTERABLE EVIDENCE GRID)
@@ -1318,6 +1367,15 @@ class SentimentTrajectoryDesktopApp:
 
         btn_next = tk.Button(pag_bar, text="Next 50 >", font=("Segoe UI", 8), bg=self.colors["card_inset"], fg=self.colors["text_main"], relief="flat", cursor="hand2", command=self._next_page)
         btn_next.pack(side=tk.RIGHT, padx=4)
+
+        # In-Feed Sponsored Card
+        ad_msg = tk.Frame(container, bg=self.colors["card_inset"], padx=10, pady=4, highlightbackground=self.colors["border"], highlightthickness=1)
+        ad_msg.pack(fill=tk.X, pady=(6, 0))
+        ad_msg_inner = tk.Frame(ad_msg, bg=self.colors["card_inset"])
+        ad_msg_inner.pack(fill=tk.X)
+        tk.Label(ad_msg_inner, text="AD", font=("Segoe UI", 7, "bold"), bg=self.colors["border"], fg=self.colors["text_muted"], padx=3, pady=1).pack(side=tk.LEFT)
+        tk.Label(ad_msg_inner, text="Sponsored • In-Feed Ad Unit", font=("Segoe UI", 7), bg=self.colors["card_inset"], fg=self.colors["text_muted"], padx=4).pack(side=tk.LEFT)
+        tk.Label(ad_msg_inner, text="Enterprise Chat Archival & Compliance Tooling for WhatsApp Exports.", font=("Segoe UI", 8), bg=self.colors["card_inset"], fg=self.colors["text_main"], padx=8).pack(side=tk.LEFT)
 
         self._render_paginated_messages()
 
@@ -1601,6 +1659,16 @@ Every finding, notable moment, and timeline point is traceable. Click any notabl
             btn_row, text="Export Analysis JSON", font=("Segoe UI", 9, "bold"), bg=self.colors["card_inset"], fg=self.colors["action_primary"], relief="flat", cursor="hand2", padx=12, pady=6,
             command=self._export_json
         ).pack(side=tk.LEFT, padx=(0, 8))
+
+        # Card 3: Sponsored Placement
+        s_ad = tk.Frame(container, bg=self.colors["card_inset"], padx=14, pady=10, highlightbackground=self.colors["border"], highlightthickness=1)
+        s_ad.pack(fill=tk.X, pady=(12, 0))
+        s_ad_top = tk.Frame(s_ad, bg=self.colors["card_inset"])
+        s_ad_top.pack(fill=tk.X)
+        tk.Label(s_ad_top, text="AD", font=("Segoe UI", 7, "bold"), bg=self.colors["border"], fg=self.colors["text_muted"], padx=3, pady=1).pack(side=tk.LEFT)
+        tk.Label(s_ad_top, text="Sponsored • AdMob Network", font=("Segoe UI", 7), bg=self.colors["card_inset"], fg=self.colors["text_muted"], padx=6).pack(side=tk.LEFT)
+        tk.Label(s_ad, text="Sentient Privacy Suite: Enterprise On-Premises LLM & Dialogue Anonymization.", font=("Segoe UI", 8, "bold"), bg=self.colors["card_inset"], fg=self.colors["text_main"]).pack(anchor="w", pady=(4, 1))
+        tk.Label(s_ad, text="Fully compliant with GDPR Art 9, CCPA & Indian DPDP Act 2023. Zero third-party data egress.", font=("Segoe UI", 8), bg=self.colors["card_inset"], fg=self.colors["text_muted"]).pack(anchor="w")
 
     def _purge_data(self):
         if messagebox.askyesno("Confirm Purge", "Permanently discard all loaded conversation data from computer RAM?"):
