@@ -5,7 +5,7 @@
 <h1 align="center">Sentiment Trajectory Analysis</h1>
 
 <p align="center">
-  <strong>An Explainable, Context-Aware Conversation-Level Sentiment & Emotional Trajectory Studio</strong>
+  <strong>Context-aware sentiment analysis and conversational trajectory modeling for English, Hindi, and Hinglish dialogue.</strong>
 </p>
 
 <p align="center">
@@ -13,15 +13,15 @@
   <a href="https://pytorch.org/"><img src="https://img.shields.io/badge/PyTorch-2.2%2B-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white" alt="PyTorch 2.2+"></a>
   <a href="https://huggingface.co/docs/transformers"><img src="https://img.shields.io/badge/Hugging%20Face-Transformers%204.38%2B-FFD21E?style=for-the-badge&logo=huggingface&logoColor=black" alt="Hugging Face Transformers"></a>
   <a href="https://scikit-learn.org/"><img src="https://img.shields.io/badge/scikit--learn-1.4%2B-F7931E?style=for-the-badge&logo=scikit-learn&logoColor=white" alt="scikit-learn"></a>
-  <a href="#test-suite-and-quality-assurance"><img src="https://img.shields.io/badge/Tests-26%20Passed%20(100%25)-5AAE91?style=for-the-badge&logo=pytest&logoColor=white" alt="Tests Passed"></a>
+  <a href="#test-suite-and-quality-assurance"><img src="https://img.shields.io/badge/Tests-36%20Passed%20(100%25)-5AAE91?style=for-the-badge&logo=pytest&logoColor=white" alt="Tests Passed"></a>
   <a href="#license"><img src="https://img.shields.io/badge/License-MIT-blue?style=for-the-badge" alt="MIT License"></a>
   <a href="#100-on-device-privacy-architecture"><img src="https://img.shields.io/badge/Privacy-100%25%20On--Device-5AAE91?style=for-the-badge&logo=shield&logoColor=white" alt="100% On-Device Privacy"></a>
 </p>
 
 <p align="center">
-  <a href="#overview">Overview</a> •
-  <a href="#key-features">Key Features</a> •
-  <a href="#visual-showcase">Visual Showcase</a> •
+  <a href="#about">About</a> •
+  <a href="#key-capabilities">Key Capabilities</a> •
+  <a href="#visual-overview">Visual Overview</a> •
   <a href="#system-architecture">Architecture</a> •
   <a href="#mathematical-methodology">Methodology</a> •
   <a href="#benchmark-evaluation">Benchmark Evaluation</a> •
@@ -29,44 +29,40 @@
   <a href="#usage-guide">Usage Guide</a> •
   <a href="#project-structure">Project Structure</a> •
   <a href="#limitations--epistemic-boundaries">Limitations</a> •
-  <a href="#roadmap">Roadmap</a> •
   <a href="#license">License</a>
 </p>
 
 ---
 
-## Overview
+## About
 
-Natural language processing typically treats text sentiment as a static, isolated classification problem: given a single sentence, classify it as positive, neutral, or negative. 
+Most sentiment analysis tools treat text as isolated sentences. They take a single phrase, assign it a positive or negative score, and ignore the surrounding exchange.
 
-In real-world human communication—such as customer support chats, workplace discussions, mediation, and messaging apps—**sentiment is dynamic, sequential, and context-dependent**. A short utterance like *"That's just fine"* or *"I can't believe this"* can express relief, anger, or sarcasm depending on preceding conversation history.
+In real conversations—customer service exchanges, dispute resolutions, team chats, or family discussions—meaning depends heavily on context. Phrases like *"That works"* or *"I did not expect that"* can express relief, sarcasm, or dissatisfaction depending on what came before. Furthermore, conversations are not static points; they are sequences that begin with one tone, shift during critical moments, and settle at a final outcome.
 
-**Sentiment Trajectory Analysis** is an open-source, explainable artificial intelligence studio that:
-1. **Preserves Conversational Context:** Incorporates preceding dialogue turns ($k$-turn history) to resolve contextual dependencies, pronouns, and pragmatic replies.
-2. **Maps Temporal Trajectories:** Computes a continuous, normalized polarity curve $s_t \in [-1.0, +1.0]$ across sequential conversation turns.
-3. **Flags Candidate Turning Points:** Automatically detects conversational inflection points where dramatic sentiment shifts ($| \Delta s | \ge \tau$) or de-escalations occur.
-4. **Generates Grounded Evidence Reports:** Produces transparent, plain-English narrative summaries backed by turn-level probabilistic evidence without external cloud dependencies.
-5. **Ensures 100% On-Device Privacy:** Designed with zero telemetry, local RAM-only chat parsing, and built-in defenses against CSV formula injection (Risk #87).
+**Sentiment Trajectory Analysis** tracks and explains these shifts across entire conversations. It processes dialogues in English, Devanagari Hindi, and Romanized Hindi (Hinglish), accounting for preceding messages to evaluate each turn accurately. Rather than overwhelming users with long transcripts or raw model probabilities, the application summarizes how the conversation unfolded, identifies key turning points, and presents actionable conclusions.
+
+All processing occurs locally in system memory. The application does not send conversation data to external servers or store personal messages after a session ends.
 
 ---
 
-## Key Features
+## Key Capabilities
 
-| Capability | Technical Implementation | Practical Benefit |
+| Capability | What It Does | Practical Purpose |
 | :--- | :--- | :--- |
-| **Conversational Context Window** | Concatenates $k$ preceding turns separated by context tokens (`<s>`, `[SEP]`) | Resolves sarcasm, conversational ellipses, and back-references without boundary leakage. |
-| **Dynamic Polarity Trajectory** | Mathematical formulation: $s_t = P(\text{positive}) - P(\text{negative})$ | Visualizes the emotional arc of a dialogue as a continuous waveform with soft shaded zones. |
-| **Candidate Turning-Point Detection** | Dual criteria: Turn-to-turn delta threshold ($| \Delta s | \ge \tau$) and sign reversal across neutral | Identifies critical moments of escalation, reconciliation, or conflict in multi-party dialogues. |
-| **Explainable Narrative Synthesis** | Grounded turn-by-turn evidence generator (`src/explain.py`) | Synthesizes an executive overview, speaker participation shares, and turning-point explanations. |
-| **WhatsApp Chat & CSV Parser** | Flexible regex tokenizer supporting iOS and Android exports (`src/whatsapp_parser.py`) | Parses multi-line messages, strips system events, and sessionizes long dialogues by inactivity gaps. |
-| **Desktop Studio (Windows `.exe`)** | Standalone Tkinter + Matplotlib native desktop app (`src/desktop_app.py`) | Complete offline application with interactive chart navigation, filterable message explorer, and preset demos. |
-| **Mobile App (`.apk` / `.aab`)** | Android WebView application with Google `apksig` V1+V2+V3 signatures | 4-byte zipaligned mobile app ready for side-loading (`.apk`) and Google Play Store submission (`.aab`). |
-| **FastAPI REST Service** | Async REST backend (`src/api.py`) with JSON schemas and CORS security | Enables headless integration into customer support QA pipelines and external web frontends. |
-| **Defensive Export Center** | Formula-injection protection (Risk #87) on CSV, Markdown, and JSON exports | Automatically sanitizes cell entries starting with `=`, `+`, `-`, or `@` to prevent spreadsheet exploitation. |
+| **Conversational Context Window** | Prepends up to $k=3$ preceding turns to the target message using standard boundary tokens. | Resolves pronoun references, short replies, and sarcastic turns that sentence-level models misclassify. |
+| **Multilingual Dialogue Support** | Automatically identifies and processes English, Devanagari Hindi (हिंदी), and Romanized Hindi (Hinglish). | Analyzes informal WhatsApp conversations directly, including phonetic variations like *bohot*, *bhot*, and *bahut*. |
+| **Continuous Polarity Trajectory** | Maps tone over time using the normalized score $s_t = P(\text{positive}) - P(\text{negative}) \in [-1.0, +1.0]$. | Visualizes whether a dialogue is steadily improving, deteriorating, or remaining stable. |
+| **Candidate Turning-Point Detection** | Detects turns where tone changes abruptly ($|\Delta s_t| \ge 0.40$) or reverses sign across the neutral threshold. | Identifies the specific messages that shifted a conversation from conflict toward resolution, or vice versa. |
+| **Executive Summary & Results** | Replaces verbatim transcript dumps with a readable three-part narrative and a health rating badge. | Gives non-technical users a clear overview of narrative flow, participant dynamics, and outcome consensus. |
+| **WhatsApp Chat & CSV Importer** | Parses exported chat logs from Android and iOS with multi-line support and system notice filtering. | Allows users to test real conversations without manual data formatting. |
+| **Desktop Application (Windows)** | Standalone desktop interface built with Tkinter and Matplotlib, including Indic font fallback (`Nirmala UI`). | Provides full offline access with interactive chart exploration, search, and paginated message verification. |
+| **Android Mobile Application** | Signed APK and Play Store bundle (`.aab`) with responsive touch controls and offline analysis. | Enables mobile conversation review directly on Android devices. |
+| **Defensive Export Center** | Sanitizes exported CSV files by prepending a quote to cells starting with `=`, `+`, `-`, or `@`. | Prevents spreadsheet formula injection attacks when opening exported data in Microsoft Excel or Google Sheets. |
 
 ---
 
-## Visual Showcase
+## Visual Overview
 
 ### Model-Generated Sentiment Trajectory Plot
 Below is a real trajectory curve and class probability breakdown generated by the sentiment inference engine on a multi-turn reconciliation dialogue:
