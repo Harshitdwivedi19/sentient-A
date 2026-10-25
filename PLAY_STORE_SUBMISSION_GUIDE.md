@@ -71,13 +71,13 @@ SCIENTIFIC METHODOLOGY & LIMITATIONS:
 ### Step 3: Complete App Content Questionnaire
 Under **Policy and programs > App content**:
 - **Privacy Policy:** Enter your privacy policy URL (e.g. your GitHub Pages URL hosting `docs/privacy_policy.html`).
-- **Ads:** Select *"No, my app does not contain ads"*.
+- **Ads Declaration:** Select **"Yes, my app contains ads"** (required because AdMob banner monetization is integrated).
 - **App Access:** Select *"All functionality is available without special access"*.
 - **Content Rating:** Start questionnaire, select *Utility/Productivity*, answer "No" to violence/offensive language, and get an **Everyone / PEGI 3** rating.
-- **Target Audience:** Select *18 and over* (or 13+).
+- **Target Audience:** Select *13 and over* (or 18+).
 - **Data Safety Form:**
-  - Does your app collect or share user data? Select **No**.
-  - All processing is local on-device.
+  - Does your app collect or share user data? Select **Yes** (solely for standard AdMob device diagnostics/ad delivery; select "Device or other IDs" collected ephemerally by advertising networks, and note that zero conversation or chat text is ever collected or shared).
+  - All sentiment chat processing is 100% local on-device.
 
 ### Step 4: Upload the Android App Bundle
 1. Go to **Release > Production** (or **Closed testing** if on a new personal developer account).

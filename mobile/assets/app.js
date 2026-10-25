@@ -28,6 +28,7 @@ Ross: Thanks Joey. You're a true friend.`
 
 let currentAnalysis = null;
 let activeFilter = "all";
+let activeChartType = "arc";
 
 document.addEventListener("DOMContentLoaded", () => {
   setupNavigationTabs();
@@ -36,6 +37,7 @@ document.addEventListener("DOMContentLoaded", () => {
   setupAdvancedToggle();
   setupAnalysisAction();
   setupFilters();
+  setupChartSelector();
   setupExports();
 
   // Load initial sample
@@ -53,7 +55,7 @@ function setupNavigationTabs() {
       document.getElementById(target).classList.add("active");
 
       if (target === "tab-results" && currentAnalysis) {
-        drawTrajectoryCanvas(currentAnalysis.trajectory_stats);
+        renderActiveMobileChart();
       }
     });
   });
@@ -121,12 +123,16 @@ function setupInputsAndReview() {
   });
 
   fileInput.addEventListener("change", (e) => {
-    const file = e.target.files[0];
+    const file = e.target.files && e.target.files[0];
     if (file) {
       const reader = new FileReader();
       reader.onload = (evt) => {
         textInput.value = evt.target.result;
         refreshPreview();
+        showToast(`Loaded: ${file.name}`);
+      };
+      reader.onerror = () => {
+        showToast(`Failed to read file: ${file.name}`);
       };
       reader.readAsText(file);
     }
@@ -274,9 +280,9 @@ function displayResults(result) {
   const vol = stats.volatility || 0;
 
   document.getElementById("kpiTurns").textContent = preds.length;
-  document.getElementById("kpiMean").textContent = (meanP > 0 ? "+" : "") + meanP.toFixed(2);
-  document.getElementById("kpiDrift").textContent = (drift > 0 ? "+" : "") + drift.toFixed(2);
-  document.getElementById("kpiVol").textContent = vol.toFixed(2);
+  document.getElementById("kpiMean").textContent = meanP > 0.15 ? "😊 Positive" : (meanP < -0.15 ? "😟 Negative" : "😐 Neutral");
+  document.getElementById("kpiDrift").textContent = drift > 0.15 ? "↗ Improved" : (drift < -0.15 ? "↘ Dropped" : "➡ Steady");
+  document.getElementById("kpiVol").textContent = vol < 0.15 ? "Smooth" : (vol < 0.35 ? "Moderate" : "Bumpy");
 
   // 2. Update Distribution Bar
   const posCount = preds.filter(p => p.pred_sentiment === "positive").length;
@@ -321,7 +327,7 @@ function displayResults(result) {
 
   // 6. Draw Canvas & Switch to Results Tab
   document.querySelector("[data-tab='tab-results']").click();
-  drawTrajectoryCanvas(stats);
+  renderActiveMobileChart();
 }
 
 function setupFilters() {
@@ -379,7 +385,132 @@ function renderFilteredChatStream() {
   });
 }
 
-function drawTrajectoryCanvas(stats) {
+function setupChartSelector() {
+  const chartBtns = document.querySelectorAll(".chart-pill-btn");
+  chartBtns.forEach(btn => {
+    btn.addEventListener("click", () => {
+      chartBtns.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      activeChartType = btn.dataset.chart;
+      if (currentAnalysis) {
+        renderActiveMobileChart();
+      }
+    });
+  });
+}
+
+function renderActiveMobileChart() {
+  if (!currentAnalysis) return;
+  const stats = currentAnalysis.trajectory_stats;
+  const preds = currentAnalysis.predictions;
+
+  const arcCanvas = document.getElementById("trajectoryCanvas");
+  const treeCanvas = document.getElementById("treemapCanvas");
+  const sankeyCanvas = document.getElementById("sankeyCanvas");
+
+  if (!arcCanvas || !treeCanvas || !sankeyCanvas) return;
+
+  // Toggle canvas visibility
+  arcCanvas.classList.toggle("hidden", activeChartType !== "arc");
+  treeCanvas.classList.toggle("hidden", activeChartType !== "treemap");
+  sankeyCanvas.classList.toggle("hidden", activeChartType !== "sankey");
+
+  const titleEl = document.getElementById("chartHeaderTitle");
+  const badgeEl = document.getElementById("chartHeaderBadge");
+  const legendEl = document.getElementById("chartLegendContainer");
+  const helpSumEl = document.getElementById("chartHelpSummary");
+  const helpBodyEl = document.getElementById("chartHelpBody");
+
+  if (activeChartType === "arc") {
+    if (titleEl) titleEl.textContent = "Emotional Polarity Arc & Journey";
+    if (badgeEl) badgeEl.textContent = "s_t = P(pos) - P(neg)";
+    if (legendEl) {
+      legendEl.innerHTML = `
+        <span class="leg-item"><span class="dot dot-pos"></span> Positive (> +0.15)</span>
+        <span class="leg-item"><span class="dot dot-neu"></span> Neutral (s=0)</span>
+        <span class="leg-item"><span class="dot dot-neg"></span> Negative (< -0.15)</span>
+      `;
+    }
+    if (helpSumEl) helpSumEl.textContent = "ℹ️ How to read this Sentiment Arc";
+    if (helpBodyEl) {
+      helpBodyEl.innerHTML = `
+        <p>• <strong>Horizontal axis:</strong> Message turn order in conversation (t = 0, 1, 2...).</p>
+        <p>• <strong>Continuous Arc:</strong> Smooth curve shows overall emotional narrative progression.</p>
+        <p>• <strong>Zero baseline:</strong> Dashed line represents neutral equilibrium.</p>
+        <p>• <strong>Star markers:</strong> Highlight candidate turning points where score shift |Δs| >= τ.</p>
+      `;
+    }
+    drawSentimentArcCanvas(stats);
+  } else if (activeChartType === "treemap") {
+    if (titleEl) titleEl.textContent = "Topic & Feedback Frequency Tree Map";
+    if (badgeEl) badgeEl.textContent = "Size = Feedback Volume";
+    if (legendEl) {
+      legendEl.innerHTML = `
+        <span class="leg-item"><span class="dot dot-pos"></span> Positive Feedback</span>
+        <span class="leg-item"><span class="dot dot-neu"></span> Neutral Comments</span>
+        <span class="leg-item"><span class="dot dot-neg"></span> Negative Issues</span>
+      `;
+    }
+    if (helpSumEl) helpSumEl.textContent = "ℹ️ How to read this Tree Map";
+    if (helpBodyEl) {
+      helpBodyEl.innerHTML = `
+        <p>• <strong>Topic Clusters:</strong> Feedback messages grouped by operational/discussion topics.</p>
+        <p>• <strong>Rectangle Area:</strong> Size is strictly proportional to the number of feedback items in that cluster.</p>
+        <p>• <strong>Color:</strong> Green represents positive sentiment, Slate is neutral, and Red represents negative issues.</p>
+      `;
+    }
+    drawTreemapCanvas(preds);
+  } else if (activeChartType === "sankey") {
+    if (titleEl) titleEl.textContent = "Sentiment Flow & Neutral Evolution";
+    if (badgeEl) badgeEl.textContent = "Transitions (t → t+1)";
+    if (legendEl) {
+      legendEl.innerHTML = `
+        <span class="leg-item"><span class="dot dot-neu"></span> Turn t (Initial State)</span>
+        <span class="leg-item">➜</span>
+        <span class="leg-item"><span class="dot dot-pos"></span> Turn t+1 (Next State)</span>
+      `;
+    }
+    if (helpSumEl) helpSumEl.textContent = "ℹ️ How to read this Sankey Diagram";
+    if (helpBodyEl) {
+      helpBodyEl.innerHTML = `
+        <p>• <strong>Sentiment Flow:</strong> Illustrates how sentiment states transition from one turn to the next.</p>
+        <p>• <strong>Neutral Evolution:</strong> Specifically highlights whether neutral queries evolve into positive solutions or escalate to negative frustration.</p>
+        <p>• <strong>Ribbon Width:</strong> Proportional to the number of transitions between the two categories.</p>
+      `;
+    }
+    drawSankeyCanvas(preds);
+  }
+}
+
+function classifyStoryArchetype(scores) {
+  if (!scores || scores.length < 3) return "Micro-Dialogue";
+  const first = scores[0];
+  const last = scores[scores.length - 1];
+  const drift = last - first;
+  const minVal = Math.min(...scores);
+  const maxVal = Math.max(...scores);
+  const minIdx = scores.indexOf(minVal);
+  const maxIdx = scores.indexOf(maxVal);
+  const n = scores.length;
+
+  if (minVal < -0.15 && (last - minVal) >= 0.30 && minIdx > 0 && minIdx < n - 1) {
+    return "Man in a Hole (Dip & Recovery)";
+  }
+  if (maxVal > 0.15 && (maxVal - last) >= 0.30 && maxIdx > 0 && maxIdx < n - 1) {
+    return "Icarus (Rise & Fall)";
+  }
+  if (drift >= 0.35) return "Rags to Riches (Continual Rise)";
+  if (drift <= -0.35) return "Tragedy (Continual Decline)";
+
+  const mean = scores.reduce((a, b) => a + b, 0) / n;
+  const variance = scores.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / n;
+  const std = Math.sqrt(variance);
+
+  if (std < 0.14 && Math.abs(drift) < 0.18) return "Steady Equilibrium (Informational)";
+  return "Fluctuating Journey (Multi-turn Waves)";
+}
+
+function drawSentimentArcCanvas(stats) {
   const canvas = document.getElementById("trajectoryCanvas");
   if (!canvas) return;
   const ctx = canvas.getContext("2d");
@@ -404,7 +535,7 @@ function drawTrajectoryCanvas(stats) {
   const plotH = h - pad.top - pad.bottom;
   const midY = pad.top + plotH / 2;
 
-  // Shaded Zones
+  // Shaded Sentiment Zones
   ctx.fillStyle = "rgba(90, 174, 145, 0.12)";
   ctx.fillRect(pad.left, pad.top, plotW, plotH * 0.425);
 
@@ -426,29 +557,58 @@ function drawTrajectoryCanvas(stats) {
   const getX = (t) => pad.left + (n === 1 ? plotW / 2 : (t / (n - 1)) * plotW);
   const getY = (s) => midY - (s * (plotH / 2) * 0.88);
 
-  // Polarity Line
-  ctx.strokeStyle = "#292A2D";
-  ctx.lineWidth = 2.5;
+  const pts = [];
+  for (let i = 0; i < n; i++) {
+    pts.push({ x: getX(i), y: getY(scores[i]) });
+  }
+
+  // Dotted Raw Line
+  ctx.strokeStyle = "rgba(135, 149, 165, 0.5)";
+  ctx.lineWidth = 1.2;
+  ctx.setLineDash([2, 3]);
   ctx.beginPath();
   for (let i = 0; i < n; i++) {
-    const x = getX(i);
-    const y = getY(scores[i]);
-    if (i === 0) ctx.moveTo(x, y);
-    else ctx.lineTo(x, y);
+    if (i === 0) ctx.moveTo(pts[i].x, pts[i].y);
+    else ctx.lineTo(pts[i].x, pts[i].y);
+  }
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Continuous Smoothed Emotional Arc Waveform
+  ctx.strokeStyle = "#292A2D";
+  ctx.lineWidth = 2.6;
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x, pts[0].y);
+  if (n > 2) {
+    for (let i = 0; i < n - 1; i++) {
+      const xc = (pts[i].x + pts[i + 1].x) / 2;
+      const yc = (pts[i].y + pts[i + 1].y) / 2;
+      ctx.quadraticCurveTo(pts[i].x, pts[i].y, xc, yc);
+    }
+    ctx.lineTo(pts[n - 1].x, pts[n - 1].y);
+  } else {
+    for (let i = 0; i < n; i++) {
+      ctx.lineTo(pts[i].x, pts[i].y);
+    }
   }
   ctx.stroke();
 
-  // Nodes
+  // Subtle filled area under curve
+  ctx.lineTo(pts[n - 1].x, midY);
+  ctx.lineTo(pts[0].x, midY);
+  ctx.closePath();
+  ctx.fillStyle = "rgba(41, 42, 45, 0.05)";
+  ctx.fill();
+
+  // Turn Nodes
   for (let i = 0; i < n; i++) {
-    const x = getX(i);
-    const y = getY(scores[i]);
     ctx.fillStyle = scores[i] > 0.15 ? "#5AAE91" : (scores[i] < -0.15 ? "#D97873" : "#8795A5");
     ctx.beginPath();
-    ctx.arc(x, y, 3.5, 0, Math.PI * 2);
+    ctx.arc(pts[i].x, pts[i].y, 3.5, 0, Math.PI * 2);
     ctx.fill();
   }
 
-  // Turning Point Stars
+  // Turning Point Star Badges
   tps.forEach(tp => {
     const t = tp.turn_index;
     const x = getX(t);
@@ -477,6 +637,355 @@ function drawTrajectoryCanvas(stats) {
   ctx.fillText("+1.0", pad.left - 5, pad.top + 6);
   ctx.fillText(" 0.0", pad.left - 5, midY + 3);
   ctx.fillText("-1.0", pad.left - 5, pad.top + plotH);
+
+  // Update Insight Card
+  const archetype = classifyStoryArchetype(scores);
+  const drift = (stats.net_change || 0);
+  const badgeEl = document.getElementById("chartInsightBadge");
+  const textEl = document.getElementById("chartInsightText");
+  if (badgeEl) badgeEl.textContent = "Emotional Arc";
+  if (textEl) textEl.textContent = `Archetype: ${archetype} | Net Drift: ${drift >= 0 ? '+' : ''}${drift.toFixed(2)}`;
+}
+
+function drawTrajectoryCanvas(stats) {
+  drawSentimentArcCanvas(stats);
+}
+
+function drawTreemapCanvas(predictions) {
+  const canvas = document.getElementById("treemapCanvas");
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width * 2;
+  canvas.height = rect.height * 2;
+  ctx.scale(2, 2);
+
+  const w = rect.width;
+  const h = rect.height;
+  const pad = { top: 12, bottom: 12, left: 12, right: 12 };
+
+  ctx.clearRect(0, 0, w, h);
+
+  const topicDefs = [
+    { name: "Issues & Technical", kws: ["error", "bug", "fail", "broke", "issue", "problem", "freeze", "crash", "down", "delay", "slow", "stuck", "leak", "pool", "reboot", "timeout", "incident"] },
+    { name: "Support & Service", kws: ["help", "call", "contact", "response", "check", "update", "looking", "sorry", "assist", "ticket", "clarify", "answer", "please", "confirm"] },
+    { name: "Product & Features", kws: ["app", "ui", "feature", "design", "work", "interface", "tool", "screen", "button", "layout", "mobile", "desktop", "system", "performance"] },
+    { name: "Resolution & Follow-up", kws: ["fixed", "solved", "verified", "ready", "done", "complete", "fine", "working", "success", "patch", "release", "shipped", "resolved", "good", "great", "thanks"] }
+  ];
+
+  const clusterCounts = {};
+  predictions.forEach(p => {
+    const text = (p.text || "").toLowerCase();
+    const sent = (p.pred_sentiment || "neutral").toLowerCase();
+    let matchedTopic = "General Feedback";
+    for (const def of topicDefs) {
+      if (def.kws.some(kw => text.includes(kw))) {
+        matchedTopic = def.name;
+        break;
+      }
+    }
+    const key = `${matchedTopic}__${sent}`;
+    clusterCounts[key] = (clusterCounts[key] || 0) + 1;
+  });
+
+  const items = [];
+  for (const [key, count] of Object.entries(clusterCounts)) {
+    const [topic, sent] = key.split("__");
+    items.push({ topic, sentiment: sent, count });
+  }
+  items.sort((a, b) => b.count - a.count);
+
+  const total = items.reduce((sum, it) => sum + it.count, 0);
+  if (total === 0) return;
+
+  const rects = computeTreemapRectangles(items, pad.left, pad.top, w - pad.left - pad.right, h - pad.top - pad.bottom);
+
+  const colorMap = {
+    positive: "#5AAE91",
+    neutral: "#8795A5",
+    negative: "#D97873"
+  };
+
+  rects.forEach(r => {
+    const fillCol = colorMap[r.sentiment] || "#8795A5";
+    ctx.fillStyle = fillCol;
+    ctx.strokeStyle = "#FFFDF6";
+    ctx.lineWidth = 2;
+
+    // Rounded Box
+    const radius = 6;
+    ctx.beginPath();
+    ctx.roundRect(r.x + 1, r.y + 1, Math.max(1, r.w - 2), Math.max(1, r.h - 2), radius);
+    ctx.fill();
+    ctx.stroke();
+
+    // Box Text
+    const pct = ((r.count / total) * 100).toFixed(0);
+    const cx = r.x + r.w / 2;
+    const cy = r.y + r.h / 2;
+
+    if (r.w > 65 && r.h > 45) {
+      ctx.fillStyle = "#FFFFFF";
+      ctx.font = "bold 10px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText(r.topic, cx, cy - 6);
+
+      ctx.fillStyle = "#F8F6EF";
+      ctx.font = "9px sans-serif";
+      ctx.fillText(`${r.sentiment.toUpperCase()} • ${r.count} (${pct}%)`, cx, cy + 10);
+    } else if (r.w > 40 && r.h > 26) {
+      ctx.fillStyle = "#FFFFFF";
+      ctx.font = "bold 9px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText(`${r.count} (${pct}%)`, cx, cy + 3);
+    }
+  });
+
+  // Insight Banner
+  const topCluster = items[0];
+  const badgeEl = document.getElementById("chartInsightBadge");
+  const textEl = document.getElementById("chartInsightText");
+  if (badgeEl) badgeEl.textContent = "Topic Clustering";
+  if (textEl && topCluster) {
+    const topPct = ((topCluster.count / total) * 100).toFixed(0);
+    textEl.textContent = `Largest feedback cluster: "${topCluster.topic}" (${topCluster.sentiment}) with ${topCluster.count} msgs (${topPct}%)`;
+  }
+}
+
+function computeTreemapRectangles(items, x, y, w, h) {
+  if (!items || items.length === 0) return [];
+  const total = items.reduce((sum, it) => sum + it.count, 0);
+  if (total === 0) return [];
+
+  if (items.length === 1) {
+    return [{ ...items[0], x, y, w, h }];
+  }
+
+  const half = total / 2;
+  let acc = 0;
+  let splitIdx = 1;
+  for (let i = 0; i < items.length; i++) {
+    acc += items[i].count;
+    if (acc >= half || i === items.length - 1) {
+      splitIdx = i === 0 ? 1 : i;
+      break;
+    }
+  }
+
+  const group1 = items.slice(0, splitIdx);
+  const group2 = items.slice(splitIdx);
+  const w1 = group1.reduce((sum, it) => sum + it.count, 0);
+  const fraction = w1 / total;
+
+  const results = [];
+  if (w >= h) {
+    const wLeft = w * fraction;
+    const wRight = w - wLeft;
+    results.push(...computeTreemapRectangles(group1, x, y, wLeft, h));
+    results.push(...computeTreemapRectangles(group2, x + wLeft, y, wRight, h));
+  } else {
+    const hTop = h * fraction;
+    const hBottom = h - hTop;
+    results.push(...computeTreemapRectangles(group1, x, y, w, hTop));
+    results.push(...computeTreemapRectangles(group2, x, y + hTop, w, hBottom));
+  }
+  return results;
+}
+
+function drawSankeyCanvas(predictions) {
+  const canvas = document.getElementById("sankeyCanvas");
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width * 2;
+  canvas.height = rect.height * 2;
+  ctx.scale(2, 2);
+
+  const w = rect.width;
+  const h = rect.height;
+  const pad = { top: 25, bottom: 20, left: 15, right: 15 };
+
+  ctx.clearRect(0, 0, w, h);
+
+  const preds = predictions.map(p => (p.pred_sentiment || "neutral").toLowerCase());
+  if (preds.length < 2) return;
+
+  const states = ["positive", "neutral", "negative"];
+  const colorMap = {
+    positive: "#5AAE91",
+    neutral: "#8795A5",
+    negative: "#D97873"
+  };
+
+  const trans = {
+    positive: { positive: 0, neutral: 0, negative: 0 },
+    neutral: { positive: 0, neutral: 0, negative: 0 },
+    negative: { positive: 0, neutral: 0, negative: 0 }
+  };
+
+  for (let i = 0; i < preds.length - 1; i++) {
+    const s1 = states.includes(preds[i]) ? preds[i] : "neutral";
+    const s2 = states.includes(preds[i + 1]) ? preds[i + 1] : "neutral";
+    trans[s1][s2]++;
+  }
+
+  const totalTrans = preds.length - 1;
+
+  const srcTotals = {};
+  const tgtTotals = {};
+  states.forEach(s => {
+    srcTotals[s] = Object.values(trans[s]).reduce((a, b) => a + b, 0);
+    tgtTotals[s] = states.reduce((sum, other) => sum + trans[other][s], 0);
+  });
+
+  const nodeW = 42;
+  const xSrc = pad.left + 15;
+  const xTgt = w - pad.right - 15 - nodeW;
+  const availH = h - pad.top - pad.bottom - 20;
+  const gap = 8;
+
+  // Node Positions
+  const srcY = {};
+  let curY = pad.top;
+  states.forEach(s => {
+    const nodeH = Math.max(16, (srcTotals[s] / totalTrans) * availH);
+    srcY[s] = { top: curY, bottom: curY + nodeH };
+    curY += nodeH + gap;
+  });
+
+  const tgtY = {};
+  curY = pad.top;
+  states.forEach(s => {
+    const nodeH = Math.max(16, (tgtTotals[s] / totalTrans) * availH);
+    tgtY[s] = { top: curY, bottom: curY + nodeH };
+    curY += nodeH + gap;
+  });
+
+  // Track flow offsets
+  const srcFlowCurY = {};
+  const tgtFlowCurY = {};
+  states.forEach(s => {
+    srcFlowCurY[s] = srcY[s].top;
+    tgtFlowCurY[s] = tgtY[s].top;
+  });
+
+  // Draw Bézier Ribbons
+  states.forEach(s1 => {
+    const s1Total = Math.max(1, srcTotals[s1]);
+    const s1H = srcY[s1].bottom - srcY[s1].top;
+
+    states.forEach(s2 => {
+      const cnt = trans[s1][s2];
+      if (cnt === 0) return;
+
+      const s2Total = Math.max(1, tgtTotals[s2]);
+      const s2H = tgtY[s2].bottom - tgtY[s2].top;
+
+      const flowHSrc = (cnt / s1Total) * s1H;
+      const flowHTgt = (cnt / s2Total) * s2H;
+
+      const yS0 = srcFlowCurY[s1];
+      const yS1 = yS0 + flowHSrc;
+      srcFlowCurY[s1] = yS1;
+
+      const yT0 = tgtFlowCurY[s2];
+      const yT1 = yT0 + flowHTgt;
+      tgtFlowCurY[s2] = yT1;
+
+      const x0 = xSrc + nodeW;
+      const x1 = xTgt;
+      const cDx = (x1 - x0) * 0.5;
+
+      ctx.beginPath();
+      ctx.moveTo(x0, yS0);
+      ctx.bezierCurveTo(x0 + cDx, yS0, x1 - cDx, yT0, x1, yT0);
+      ctx.lineTo(x1, yT1);
+      ctx.bezierCurveTo(x1 - cDx, yT1, x0 + cDx, yS1, x0, yS1);
+      ctx.closePath();
+
+      ctx.fillStyle = hexToRgba(colorMap[s1], 0.40);
+      ctx.fill();
+    });
+  });
+
+  // Draw Source Nodes
+  states.forEach(s => {
+    const yTop = srcY[s].top;
+    const yBot = srcY[s].bottom;
+    const nodeH = yBot - yTop;
+
+    ctx.fillStyle = colorMap[s];
+    ctx.beginPath();
+    ctx.roundRect(xSrc, yTop, nodeW, nodeH, 5);
+    ctx.fill();
+
+    ctx.fillStyle = "#FFFFFF";
+    ctx.font = "bold 9px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(s[0].toUpperCase() + s.slice(1, 3), xSrc + nodeW / 2, yTop + nodeH / 2 + 3);
+
+    ctx.fillStyle = "#777873";
+    ctx.font = "8px sans-serif";
+    ctx.textAlign = "right";
+    ctx.fillText(`${srcTotals[s]}`, xSrc - 3, yTop + nodeH / 2 + 3);
+  });
+
+  // Draw Target Nodes
+  states.forEach(s => {
+    const yTop = tgtY[s].top;
+    const yBot = tgtY[s].bottom;
+    const nodeH = yBot - yTop;
+
+    ctx.fillStyle = colorMap[s];
+    ctx.beginPath();
+    ctx.roundRect(xTgt, yTop, nodeW, nodeH, 5);
+    ctx.fill();
+
+    ctx.fillStyle = "#FFFFFF";
+    ctx.font = "bold 9px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(s[0].toUpperCase() + s.slice(1, 3), xTgt + nodeW / 2, yTop + nodeH / 2 + 3);
+
+    ctx.fillStyle = "#777873";
+    ctx.font = "8px sans-serif";
+    ctx.textAlign = "left";
+    ctx.fillText(`${tgtTotals[s]}`, xTgt + nodeW + 3, yTop + nodeH / 2 + 3);
+  });
+
+  // Column Headers
+  ctx.fillStyle = "#292A2D";
+  ctx.font = "bold 9px sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText("Initial Turn t", xSrc + nodeW / 2, pad.top - 8);
+  ctx.fillText("Next Turn t+1", xTgt + nodeW / 2, pad.top - 8);
+
+  // Neutral Evolution Dynamics Insight
+  const neuTotal = srcTotals["neutral"];
+  const badgeEl = document.getElementById("chartInsightBadge");
+  const textEl = document.getElementById("chartInsightText");
+  if (badgeEl) badgeEl.textContent = "Neutral Evolution";
+  if (textEl) {
+    if (neuTotal > 0) {
+      const nPos = trans["neutral"]["positive"];
+      const nNeg = trans["neutral"]["negative"];
+      const nNeu = trans["neutral"]["neutral"];
+      const pPos = ((nPos / neuTotal) * 100).toFixed(0);
+      const pNeg = ((nNeg / neuTotal) * 100).toFixed(0);
+      const pNeu = ((nNeu / neuTotal) * 100).toFixed(0);
+      textEl.textContent = `Neutral evolution: ${nPos} (${pPos}%) → Positive, ${nNeg} (${pNeg}%) → Negative, ${nNeu} (${pNeu}%) → Neutral`;
+    } else {
+      textEl.textContent = "No neutral comments in source turns of this dialogue.";
+    }
+  }
+}
+
+function hexToRgba(hex, alpha) {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
 function renderWrittenReport(result) {

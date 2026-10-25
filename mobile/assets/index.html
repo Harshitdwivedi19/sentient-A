@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Sentiment Trajectory Analysis — Explainable AI</title>
+  <title>Sentient Trajectory — Easy Conversation Mood Analysis</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -14,7 +14,7 @@
         <img src="logo.png" alt="Logo" class="app-logo">
         <div>
           <h1 class="app-title">Sentient Trajectory</h1>
-          <p class="app-subtitle">Understand sentiment changes across conversations</p>
+          <p class="app-subtitle">Understand the mood & tone of your conversations</p>
         </div>
       </div>
       <span class="status-pill status-ready" id="connStatus">Ready</span>
@@ -23,11 +23,11 @@
     <!-- First-Use Onboarding Banner (Dismissible) -->
     <div id="onboardingBanner" class="onboarding-card">
       <div class="onboarding-content">
-        <strong>👋 New to Sentiment Trajectory Analysis?</strong>
-        <p>Explore how model-predicted sentiment shifts across messages, and inspect evidence-grounded turning points.</p>
+        <strong>👋 Discover Your Conversation's Mood!</strong>
+        <p>See how feelings shift from message to message, detect sudden mood changes, and get clear summaries.</p>
         <div class="onboarding-actions">
-          <button id="onboardingDemoBtn" class="btn-xs-primary">Try Demo Dialogue</button>
-          <button id="onboardingDismissBtn" class="btn-xs-subtle">Got it</button>
+          <button id="onboardingDemoBtn" class="btn-xs-primary">Try Demo Chat</button>
+          <button id="onboardingDismissBtn" class="btn-xs-subtle">Got It</button>
         </div>
       </div>
     </div>
@@ -48,64 +48,47 @@
       <!-- ================================================================= -->
       <section id="tab-overview" class="tab-pane active">
         <div class="card hero-card">
-          <h2 class="hero-title">Welcome to Sentiment Trajectory Analysis</h2>
+          <h2 class="hero-title">How Are People Really Feeling in Your Chats?</h2>
           <p class="hero-desc">
-            This tool analyzes the sentiment expressed in conversation messages, visualizes how model-predicted
-            sentiment changes over time, and highlights notable shifts. It provides an evidence-based summary
-            to help users explore conversational patterns.
+            Sentient Trajectory makes it simple to understand conversational tone. Paste any chat, upload a WhatsApp conversation, or try our sample dialogues to see visual mood charts, turning points, and plain-English summaries.
           </p>
           <div class="hero-actions">
-            <button id="overviewStartBtn" class="btn-primary">🚀 Analyze a Conversation</button>
-            <button id="overviewDemoBtn" class="btn-secondary">💡 Try Demo Dialogue</button>
+            <button id="overviewStartBtn" class="btn-primary">🚀 Analyze a Chat Now</button>
+            <button id="overviewDemoBtn" class="btn-secondary">💡 Try Demo Chat</button>
           </div>
         </div>
 
         <div class="card">
-          <label class="card-title">How It Works: 5-Step Workflow</label>
+          <label class="card-title">How It Works in 3 Easy Steps</label>
           <div class="workflow-list">
             <div class="workflow-step">
               <span class="step-badge">1</span>
               <div>
-                <strong>Provide Conversation</strong>
-                <p>Paste text, upload an exported WhatsApp chat (.txt), or choose a benchmark sample.</p>
+                <strong>Add Your Conversation</strong>
+                <p>Paste text, upload an exported WhatsApp chat (.txt), or choose a ready-to-use sample.</p>
               </div>
             </div>
             <div class="workflow-step">
               <span class="step-badge">2</span>
               <div>
-                <strong>Review & Prepare</strong>
-                <p>Verify parsed turns, speakers, and message boundaries before running inference.</p>
+                <strong>View 3 Visual Mood Charts</strong>
+                <p>Explore your Emotional Journey Arc, Topic Feedback Tree Map, and Mood Flow Diagram.</p>
               </div>
             </div>
             <div class="workflow-step">
               <span class="step-badge">3</span>
               <div>
-                <strong>Run Sentiment Model</strong>
-                <p>Classify turn probabilities using RoBERTa Context-Aware or Baseline TF-IDF.</p>
-              </div>
-            </div>
-            <div class="workflow-step">
-              <span class="step-badge">4</span>
-              <div>
-                <strong>Explore Trajectory Curve</strong>
-                <p>Inspect continuous polarity waveform, shaded sentiment zones, and turning points.</p>
-              </div>
-            </div>
-            <div class="workflow-step">
-              <span class="step-badge">5</span>
-              <div>
-                <strong>Evidence & Export</strong>
-                <p>Read the non-causal explanation report and export data with formula-injection defenses.</p>
+                <strong>Read Plain-English Insights</strong>
+                <p>Discover key turning points and export simple summaries with 100% on-device privacy.</p>
               </div>
             </div>
           </div>
         </div>
 
         <div class="card notice-card">
-          <label class="card-title">⚖️ Scientific Epistemic Boundary</label>
+          <label class="card-title">🛡️ 100% Private & Safe</label>
           <p class="notice-text">
-            • Polarity scores are model-derived indicators (s_t = P(pos) - P(neg)), NOT direct biological or clinical emotion.<br>
-            • An algorithmic turning point denotes an observed shift in expressed language, not a proven psychological cause.
+            All conversations are analyzed entirely on your device in temporary memory. Your personal messages are never saved, uploaded to cloud servers, or shared with advertisers.
           </p>
         </div>
       </section>
@@ -118,9 +101,9 @@
         <div class="card">
           <div class="step-header">
             <span class="step-num">Step 1</span>
-            <label class="card-title">Provide Your Conversation</label>
+            <label class="card-title">Add Your Conversation</label>
           </div>
-          <p class="step-desc">Enter one message per line. Use 'Speaker: Message' format if speaker names are known.</p>
+          <p class="step-desc">Choose a sample chat, upload a WhatsApp export file, or paste your messages.</p>
 
           <div class="mode-selector">
             <label class="mode-pill"><input type="radio" name="inputMode" value="sample" checked> Demo Sample</label>
@@ -129,23 +112,23 @@
           </div>
 
           <div id="sampleSelectorGroup" class="form-group">
-            <label for="sampleSelect">Select Benchmark Dialogue:</label>
+            <label for="sampleSelect">Select Sample Conversation:</label>
             <select id="sampleSelect" class="form-control">
               <option value="conflict_recon">Conflict to Reconciliation (De-escalation)</option>
-              <option value="whatsapp_incident">WhatsApp Incident & Rapid Fix</option>
-              <option value="meld_friends">MELD Dialogue: Empathy & Support</option>
+              <option value="whatsapp_incident">WhatsApp Incident & Quick Resolution</option>
+              <option value="meld_friends">Friends Dialogue: Friendly Empathy & Support</option>
             </select>
           </div>
 
           <div id="fileUploadGroup" class="form-group hidden">
-            <label for="waFileInput">Upload WhatsApp Export (.txt):</label>
-            <input type="file" id="waFileInput" accept=".txt" class="file-input">
-            <p class="hint-text">Export from WhatsApp: Chat > More > Export Chat (Without Media).</p>
+            <label for="waFileInput">Choose WhatsApp Chat Export (.txt):</label>
+            <input type="file" id="waFileInput" accept=".txt,text/plain,text/*" class="file-input">
+            <p class="hint-text">In WhatsApp: Chat &gt; More &gt; Export Chat &gt; Without Media.</p>
           </div>
 
           <div id="textInputGroup" class="form-group">
-            <label for="chatTextInput">Conversation Messages:</label>
-            <textarea id="chatTextInput" class="form-control text-area" rows="7" placeholder="Speaker: Message&#10;Alice: Hello&#10;Bob: Hi there"></textarea>
+            <label for="chatTextInput">Messages (One per line):</label>
+            <textarea id="chatTextInput" class="form-control text-area" rows="6" placeholder="Alice: Hello! How are you?&#10;Bob: Doing great, thanks!"></textarea>
           </div>
         </div>
 
@@ -153,12 +136,12 @@
         <div class="card">
           <div class="step-header">
             <span class="step-num">Step 2</span>
-            <label class="card-title">Review & Prepare</label>
+            <label class="card-title">Check Messages</label>
           </div>
-          <p class="step-desc">Confirm that turns and speakers were parsed accurately before running analysis.</p>
+          <p class="step-desc">Verify that messages and speaker names were detected accurately.</p>
 
           <div class="preview-stats-bar">
-            <span id="previewStatsBadge" class="stats-badge">Parsed: 0 Messages | 0 Speakers</span>
+            <span id="previewStatsBadge" class="stats-badge">Detected: 0 Messages | 0 Speakers</span>
             <button id="refreshPreviewBtn" class="btn-xs-subtle">🔄 Refresh</button>
           </div>
 
@@ -174,49 +157,49 @@
           </div>
         </div>
 
-        <!-- Step 3: Configure Analysis (Progressive Disclosure) -->
+        <!-- Step 3: Configure Settings -->
         <div class="card">
           <div class="step-header">
             <span class="step-num">Step 3</span>
-            <label class="card-title">Configure Settings</label>
+            <label class="card-title">Analysis Settings</label>
             <button id="toggleAdvBtn" class="btn-xs-subtle">⚙️ Options ▼</button>
           </div>
 
           <div class="form-group">
-            <label for="modelSelect">Model Architecture:</label>
+            <label for="modelSelect">AI Analysis Model:</label>
             <select id="modelSelect" class="form-control">
-              <option value="roberta_context">RoBERTa Context-Aware (Recommended)</option>
-              <option value="roberta_independent">RoBERTa Independent</option>
-              <option value="baseline">TF-IDF Baseline (Fast)</option>
+              <option value="roberta_context">Smart Context-Aware Model (Recommended)</option>
+              <option value="roberta_independent">Standard Independent Model</option>
+              <option value="baseline">Fast Baseline Model</option>
             </select>
           </div>
 
           <div id="advancedOptionsContainer" class="advanced-options hidden">
             <div class="slider-group">
               <div class="slider-header">
-                <span>Turning-Point Sensitivity (τ):</span>
-                <strong id="tauDisplay">0.40</strong>
+                <span>Mood Change Sensitivity:</span>
+                <strong id="tauDisplay">Normal (0.40)</strong>
               </div>
               <input type="range" id="tauRange" min="0.1" max="0.9" step="0.05" value="0.4" class="slider">
-              <p class="hint-text">Minimum score shift |Δs| required to flag a candidate shift.</p>
+              <p class="hint-text">Higher values only flag major emotional swings.</p>
             </div>
 
             <div class="slider-group">
               <div class="slider-header">
-                <span>Context Window Length (k):</span>
-                <strong id="kDisplay">3 turns</strong>
+                <span>AI Memory (Previous Messages):</span>
+                <strong id="kDisplay">3 messages</strong>
               </div>
               <input type="range" id="kRange" min="0" max="5" step="1" value="3" class="slider">
-              <p class="hint-text">Number of preceding turns prepended to the current message.</p>
+              <p class="hint-text">How many previous messages the AI reads to understand the tone of each reply.</p>
             </div>
           </div>
         </div>
 
-        <!-- Step 4: Run Analysis Action -->
+        <!-- Step 4: Run Action -->
         <button id="runAnalysisBtn" class="btn-primary btn-run">
-          <span>🚀 Run Trajectory Analysis</span>
+          <span>🚀 Analyze Conversation Mood</span>
         </button>
-        <p id="staleNotice" class="stale-notice hidden">⚠️ Input text was modified. Results on the dashboard are out of date.</p>
+        <p id="staleNotice" class="stale-notice hidden">⚠️ Messages were updated. Click above to refresh your results.</p>
       </section>
 
       <!-- ================================================================= -->
@@ -226,53 +209,69 @@
         <!-- Section A: Summary Ribbon -->
         <div class="kpi-grid">
           <div class="kpi-card">
-            <span class="kpi-label">Analyzed Turns</span>
+            <span class="kpi-label">Total Messages</span>
             <span class="kpi-val" id="kpiTurns">0</span>
           </div>
           <div class="kpi-card">
-            <span class="kpi-label">Mean Polarity</span>
-            <span class="kpi-val" id="kpiMean">0.00</span>
+            <span class="kpi-label">Average Mood</span>
+            <span class="kpi-val" id="kpiMean">Neutral</span>
           </div>
           <div class="kpi-card">
-            <span class="kpi-label">Net Drift (Δs)</span>
-            <span class="kpi-val" id="kpiDrift">0.00</span>
+            <span class="kpi-label">Overall Shift</span>
+            <span class="kpi-val" id="kpiDrift">Steady</span>
           </div>
           <div class="kpi-card">
-            <span class="kpi-label">Volatility (σ)</span>
-            <span class="kpi-val" id="kpiVol">0.00</span>
+            <span class="kpi-label">Mood Stability</span>
+            <span class="kpi-val" id="kpiVol">Smooth</span>
           </div>
         </div>
 
-        <!-- Section B: Trajectory Waveform Card -->
+        <!-- Section B: Interactive Multi-Chart Visual Analytics Card -->
         <div class="card chart-card">
+          <div class="chart-selector-ribbon">
+            <button class="chart-pill-btn active" data-chart="arc">🌊 Emotional Arc</button>
+            <button class="chart-pill-btn" data-chart="treemap">🗺️ Topic Map</button>
+            <button class="chart-pill-btn" data-chart="sankey">🔀 Mood Flow</button>
+          </div>
+
           <div class="chart-header">
-            <h3>Emotional Polarity Waveform</h3>
-            <span class="legend-badge">s_t = P(pos) - P(neg)</span>
+            <h3 id="chartHeaderTitle">Emotional Journey Arc</h3>
+            <span class="legend-badge" id="chartHeaderBadge">Mood Over Time</span>
           </div>
           
-          <canvas id="trajectoryCanvas" width="380" height="230"></canvas>
+          <div class="canvas-wrapper">
+            <canvas id="trajectoryCanvas" width="380" height="230"></canvas>
+            <canvas id="treemapCanvas" width="380" height="250" class="hidden"></canvas>
+            <canvas id="sankeyCanvas" width="380" height="260" class="hidden"></canvas>
+          </div>
           
-          <div class="chart-legend">
-            <span class="leg-item"><span class="dot dot-pos"></span> Positive (> +0.15)</span>
-            <span class="leg-item"><span class="dot dot-neu"></span> Neutral (s=0)</span>
-            <span class="leg-item"><span class="dot dot-neg"></span> Negative (< -0.15)</span>
+          <div class="chart-legend" id="chartLegendContainer">
+            <span class="leg-item"><span class="dot dot-pos"></span> Positive 😊</span>
+            <span class="leg-item"><span class="dot dot-neu"></span> Neutral 😐</span>
+            <span class="leg-item"><span class="dot dot-neg"></span> Negative 😟</span>
+          </div>
+
+          <!-- Insight & Narrative Archetype Card -->
+          <div id="chartInsightBanner" class="chart-insight-card">
+            <span id="chartInsightBadge" class="insight-badge">Story Arc</span>
+            <span id="chartInsightText" class="insight-text">Analyzing your conversation journey...</span>
           </div>
 
           <!-- Expandable How to Read -->
           <details class="chart-help-details">
-            <summary class="chart-help-summary">ℹ️ How to read this trajectory chart</summary>
-            <div class="chart-help-body">
-              <p>• <strong>Horizontal axis:</strong> Message turn order in conversation (t = 0, 1, 2...).</p>
-              <p>• <strong>Vertical axis:</strong> Polarity score in [-1.0, +1.0]. Values above +0.15 indicate positive prediction; values below -0.15 indicate negative prediction.</p>
-              <p>• <strong>Zero baseline:</strong> Dashed line represents neutral equilibrium or balanced uncertainty.</p>
-              <p>• <strong>Star markers:</strong> Highlight candidate turning points where score shift |Δs| >= τ.</p>
+            <summary class="chart-help-summary" id="chartHelpSummary">ℹ️ How to read this chart</summary>
+            <div class="chart-help-body" id="chartHelpBody">
+              <p>• <strong>Left to right:</strong> Shows the conversation from the first message to the last.</p>
+              <p>• <strong>Up and down:</strong> Upward curve means happier mood; downward curve means frustration or tension.</p>
+              <p>• <strong>Middle dashed line:</strong> Calm, neutral balance.</p>
+              <p>• <strong>Star markers:</strong> Moments where the mood changed noticeably.</p>
             </div>
           </details>
         </div>
 
         <!-- Section C: Sentiment Class Distribution -->
         <div class="card">
-          <label class="card-title">Sentiment Category Distribution</label>
+          <label class="card-title">Overall Sentiment Breakdown</label>
           <div class="dist-bar-container">
             <div id="distPositiveBar" class="dist-seg dist-pos" style="width: 33%;">Positive</div>
             <div id="distNeutralBar" class="dist-seg dist-neu" style="width: 34%;">Neutral</div>
@@ -285,48 +284,48 @@
           </div>
         </div>
 
-        <!-- Section D: Filterable Message Explorer -->
+        <!-- Section D: Message Explorer -->
         <div class="card">
           <div class="chat-header-bar">
-            <label class="card-title">Message Explorer</label>
+            <label class="card-title">Message Inspector</label>
             <div class="chat-filters">
               <button class="filter-pill active" data-filter="all">All</button>
-              <button class="filter-pill" data-filter="positive">Pos</button>
-              <button class="filter-pill" data-filter="neutral">Neu</button>
-              <button class="filter-pill" data-filter="negative">Neg</button>
+              <button class="filter-pill" data-filter="positive">Positive</button>
+              <button class="filter-pill" data-filter="neutral">Neutral</button>
+              <button class="filter-pill" data-filter="negative">Negative</button>
               <button class="filter-pill" data-filter="shifts">⚡ Shifts</button>
             </div>
           </div>
 
           <div class="chat-stream" id="chatStream">
-            <p class="empty-state">Run an analysis to inspect conversation turns.</p>
+            <p class="empty-state">Run an analysis to inspect individual messages.</p>
           </div>
         </div>
 
-        <!-- Section E: Candidate Turning Points -->
+        <!-- Section E: Key Mood Shifts -->
         <div class="card">
-          <label class="card-title">Candidate Shift Events</label>
+          <label class="card-title">Key Mood Shifts Detected</label>
           <div id="tpContainer" class="tp-list">
-            <p class="empty-state">No candidate turning points detected.</p>
+            <p class="empty-state">No sudden mood shifts detected.</p>
           </div>
         </div>
 
-        <!-- Section F: Evidence Report -->
+        <!-- Section F: Summary Report -->
         <div class="card">
           <div class="report-header">
-            <label class="card-title">Evidence-Grounded Report</label>
-            <button id="copyReportBtn" class="btn-xs-subtle">📋 Copy Report</button>
+            <label class="card-title">Conversation Summary Report</label>
+            <button id="copyReportBtn" class="btn-xs-subtle">📋 Copy</button>
           </div>
-          <pre id="reportPre" class="report-box">Run an analysis to generate the narrative report.</pre>
+          <pre id="reportPre" class="report-box">Run an analysis to generate your report.</pre>
         </div>
 
         <!-- Section G: Export Center -->
         <div class="card">
-          <label class="card-title">Data & Report Exports</label>
-          <p class="hint-text">All exports include formula-injection protections (Risk #87) and stay on your local device.</p>
+          <label class="card-title">Save & Export Data</label>
+          <p class="hint-text">Exports are saved safely to your phone storage with formula-injection defenses.</p>
           <div class="export-btn-grid">
             <button id="exportCsvBtn" class="btn-secondary">💾 Export CSV</button>
-            <button id="exportReportBtn" class="btn-secondary">📄 Export Report (.md)</button>
+            <button id="exportReportBtn" class="btn-secondary">📄 Export Report</button>
             <button id="exportJsonBtn" class="btn-secondary">📊 Export JSON</button>
           </div>
         </div>
@@ -337,30 +336,46 @@
       <!-- ================================================================= -->
       <section id="tab-guide" class="tab-pane">
         <div class="card guide-card">
-          <h2 class="guide-title">Sentiment Trajectory Analysis Guide</h2>
+          <h2 class="guide-title">How Sentient Trajectory Works</h2>
           
           <div class="guide-section">
-            <h3>1. What does this application do?</h3>
-            <p><strong>Sentiment analysis:</strong> Predicts whether an individual message expresses positive, neutral, or negative sentiment.</p>
-            <p><strong>Trajectory analysis:</strong> Models how those sentiment predictions evolve over time across sequential messages in a conversation.</p>
+            <h3>1. What is this app?</h3>
+            <p>Sentient Trajectory helps you understand conversations better by reading the emotional tone of text messages and showing how the mood evolved over time.</p>
           </div>
 
           <div class="guide-section">
-            <h3>2. Key Concepts & Formulas</h3>
-            <p>• <strong>Polarity Score (s_t):</strong> Mathematical score defined as <code>s_t = P(positive) - P(negative)</code> in range [-1.0, +1.0].</p>
-            <p>• <strong>Context Window (k):</strong> Preceding conversational turns prepended to the target utterance to give the Transformer conversational memory.</p>
-            <p>• <strong>Candidate Turning Point:</strong> An inflection point where turn-to-turn score change <code>|Δs| >= τ</code> or where a sign reversal across neutral occurs.</p>
-            <p>• <strong>Volatility (σ):</strong> Standard deviation of score changes (Δs) across the conversation.</p>
+            <h3>2. The 3 Easy Charts Explained</h3>
+            <p>• <strong>🌊 Emotional Journey Arc:</strong> A continuous line showing whether the chat had a happy start, a tense conflict, and a satisfying recovery.</p>
+            <p>• <strong>🗺️ Topic Map:</strong> Groups messages into topics (like Technical Issues, Customer Support, or Resolutions) and shows what people discussed most.</p>
+            <p>• <strong>🔀 Mood Flow:</strong> Shows how feelings evolved from one message to the next (e.g. how many neutral or frustrated questions turned positive).</p>
           </div>
 
           <div class="guide-section">
-            <h3>3. Scientific Accuracy & Limitations</h3>
-            <p>• Polarity scores are model-derived indicators, NOT direct measurements of human internal emotions.</p>
-            <p>• Sarcasm, cultural idioms, and non-verbal cues may affect model classification.</p>
-            <p>• An identified turning point is an algorithmic flag, not proof of real-world interpersonal conflict or intent.</p>
+            <h3>3. Privacy & Ethics</h3>
+            <p>• <strong>100% On-Device:</strong> Your messages never leave your phone.</p>
+            <p>• <strong>Helpful Guide, Not a Diagnosis:</strong> This app observes language tone to give you helpful conversational insights.</p>
           </div>
         </div>
       </section>
+
+      <!-- ================================================================= -->
+      <!-- GOOGLE ADMOB MONETIZATION BANNER                                  -->
+      <!-- ================================================================= -->
+      <div id="adBannerContainer" class="ad-banner-card">
+        <div class="ad-badge-row">
+          <span class="ad-label">Ad</span>
+          <span class="ad-sublabel">Sponsored</span>
+        </div>
+        <div class="ad-content-box">
+          <div class="ad-icon">✨</div>
+          <div class="ad-copy">
+            <strong class="ad-title">Boost Your Team Productivity</strong>
+            <p class="ad-desc">Explore smart communication and collaboration tools designed for modern teams.</p>
+          </div>
+          <button class="ad-btn" onclick="showToast('Ad Sponsor Link Opened')">Learn More</button>
+        </div>
+      </div>
+
     </main>
   </div>
 

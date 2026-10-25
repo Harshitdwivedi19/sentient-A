@@ -29,6 +29,8 @@ import matplotlib
 matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from matplotlib.figure import Figure
+import matplotlib.patches as mpatches
+from matplotlib.path import Path as MplPath
 import numpy as np
 import pandas as pd
 
@@ -107,6 +109,7 @@ class SentimentTrajectoryDesktopApp:
         self.selected_file_path: Optional[Path] = None
         self.is_results_stale: bool = False
         self.active_filter: str = "all"
+        self.active_chart_mode: str = "arc"
 
         # Apply styling system
         self._setup_design_system()
@@ -160,26 +163,26 @@ class SentimentTrajectoryDesktopApp:
         style.configure("Card.TFrame", background="#FFFDF6", relief="flat", borderwidth=1)
         style.configure("TLabel", background="#F8F6EF", foreground="#292A2D", font=("Segoe UI", 10))
         style.configure("Card.TLabel", background="#FFFDF6", foreground="#292A2D", font=("Segoe UI", 10))
-        style.configure("HeaderTitle.TLabel", font=("Segoe UI", 13, "bold"), foreground="#F8F6EF", background="#292A2D")
-        style.configure("HeaderSub.TLabel", font=("Segoe UI", 9), foreground="#B0ADA5", background="#292A2D")
+        style.configure("HeaderTitle.TLabel", font=("Segoe UI", 14, "bold"), foreground="#F8F6EF", background="#292A2D")
+        style.configure("HeaderSub.TLabel", font=("Segoe UI", 10), foreground="#B0ADA5", background="#292A2D")
 
         # Navigation Tabs
         style.configure("TNotebook", background="#F8F6EF", tabmargins=[8, 4, 8, 0])
-        style.configure("TNotebook.Tab", font=("Segoe UI", 10, "bold"), padding=[16, 8], background="#E8E4D9", foreground="#777873")
+        style.configure("TNotebook.Tab", font=("Segoe UI", 10, "bold"), padding=[18, 9], background="#E8E4D9", foreground="#777873")
         style.map("TNotebook.Tab",
                   background=[("selected", "#292A2D")],
                   foreground=[("selected", "#F8F6EF")])
 
         # Buttons
-        style.configure("Primary.TButton", font=("Segoe UI", 10, "bold"), background="#292A2D", foreground="#F8F6EF", padding=[12, 6])
+        style.configure("Primary.TButton", font=("Segoe UI", 10, "bold"), background="#292A2D", foreground="#F8F6EF", padding=[14, 7])
         style.map("Primary.TButton", background=[("active", "#3D3E42")])
 
-        style.configure("Secondary.TButton", font=("Segoe UI", 9), background="#FFFDF6", foreground="#292A2D", padding=[10, 5], relief="flat")
+        style.configure("Secondary.TButton", font=("Segoe UI", 9), background="#FFFDF6", foreground="#292A2D", padding=[11, 5], relief="flat")
         style.configure("FilterActive.TButton", font=("Segoe UI", 9, "bold"), background="#F3D86A", foreground="#292A2D")
 
         # Treeview
-        style.configure("Treeview", font=("Segoe UI", 9), rowheight=24, background="#FFFDF6", fieldbackground="#FFFDF6", foreground="#292A2D")
-        style.configure("Treeview.Heading", font=("Segoe UI", 9, "bold"), background="#F0EDE5", foreground="#292A2D")
+        style.configure("Treeview", font=("Segoe UI", 10), rowheight=26, background="#FFFDF6", fieldbackground="#FFFDF6", foreground="#292A2D")
+        style.configure("Treeview.Heading", font=("Segoe UI", 10, "bold"), background="#F0EDE5", foreground="#292A2D")
 
     def _init_analyzer_thread(self):
         try:
@@ -675,25 +678,40 @@ class SentimentTrajectoryDesktopApp:
 
         self.kpi_widgets = {}
         metrics_meta = [
-            ("Analyzed Turns", "0", "turns", "Total conversation messages analyzed"),
-            ("Mean Polarity", "0.00", "mean", "Average polarity score across turns"),
-            ("Net Drift (Δs)", "0.00", "drift", "Difference between final and initial score"),
-            ("Volatility (σ)", "0.00", "vol", "Standard deviation of turn-to-turn score changes"),
-            ("Shift Events", "0", "tps", "Candidate turning points flagged by algorithm")
+            ("Total Messages", "0", "turns", "Total conversation messages analyzed"),
+            ("Average Mood", "Neutral", "mean", "Average emotional tone across all messages"),
+            ("Overall Shift", "Steady", "drift", "Whether the mood improved or dropped by the end"),
+            ("Mood Stability", "Smooth", "vol", "How consistent the emotional tone remained"),
+            ("Key Shifts", "0", "tps", "Noticeable changes in conversation mood")
         ]
 
         for title, default_val, key, tooltip_desc in metrics_meta:
             card = ttk.Frame(self.kpi_container, style="Card.TFrame", padding=8)
             card.pack(side="left", fill="both", expand=True, padx=3)
             
-            lbl = ttk.Label(card, text=title, font=("Segoe UI", 8, "bold"), foreground=self.colors["text_muted"], style="Card.TLabel")
+            lbl = ttk.Label(card, text=title, font=("Segoe UI", 9, "bold"), foreground=self.colors["text_muted"], style="Card.TLabel")
             lbl.pack(anchor="center")
             
-            val = ttk.Label(card, text=default_val, font=("Segoe UI", 14, "bold"), style="Card.TLabel")
+            val = ttk.Label(card, text=default_val, font=("Segoe UI", 12, "bold"), style="Card.TLabel")
             val.pack(anchor="center", pady=(2, 0))
             self.kpi_widgets[key] = val
 
-        # 2. Main Trajectory Matplotlib Canvas
+        # 2. Chart Mode Switcher Toolbar
+        chart_switch_bar = ttk.Frame(self.tab_res_viz, style="Card.TFrame", padding=6)
+        chart_switch_bar.pack(fill="x", pady=(0, 6))
+
+        ttk.Label(chart_switch_bar, text="Visualization View:", font=("Segoe UI", 9, "bold"), style="Card.TLabel").pack(side="left", padx=(0, 8))
+
+        self.btn_chart_arc = ttk.Button(chart_switch_bar, text="🌊 Sentiment Arc", style="FilterActive.TButton", command=lambda: self._switch_chart_mode("arc"))
+        self.btn_chart_arc.pack(side="left", padx=3)
+
+        self.btn_chart_tree = ttk.Button(chart_switch_bar, text="🗺️ Tree Map", style="Secondary.TButton", command=lambda: self._switch_chart_mode("treemap"))
+        self.btn_chart_tree.pack(side="left", padx=3)
+
+        self.btn_chart_sankey = ttk.Button(chart_switch_bar, text="🔀 Sankey Flow", style="Secondary.TButton", command=lambda: self._switch_chart_mode("sankey"))
+        self.btn_chart_sankey.pack(side="left", padx=3)
+
+        # Main Visualization Matplotlib Canvas
         self.plot_frame = ttk.Frame(self.tab_res_viz, style="Card.TFrame", padding=6)
         self.plot_frame.pack(fill="both", expand=True)
 
@@ -711,20 +729,71 @@ class SentimentTrajectoryDesktopApp:
         guide_drawer = ttk.Frame(self.tab_res_viz, style="Card.TFrame", padding=8)
         guide_drawer.pack(fill="x", pady=(6, 0))
 
-        ttk.Label(guide_drawer, text="ℹ️ How to Read This Trajectory Chart", font=("Segoe UI", 9, "bold"), style="Card.TLabel").pack(anchor="w")
-        ttk.Label(
+        self.chart_guide_title = ttk.Label(guide_drawer, text="ℹ️ How to Read This Sentiment Arc Chart", font=("Segoe UI", 9, "bold"), style="Card.TLabel")
+        self.chart_guide_title.pack(anchor="w")
+        self.chart_guide_desc = ttk.Label(
             guide_drawer,
-            text=(
-                "• Horizontal axis shows conversation turn index (t = 0, 1, 2...).\n"
-                "• Vertical axis shows predicted sentiment polarity s_t = P(positive) - P(negative) in [-1.0, +1.0].\n"
-                "• Soft Green Zone (> +0.15) indicates positive polarity; Soft Red Zone (< -0.15) indicates negative polarity.\n"
-                "• Star markers denote algorithmically flagged turning points where turn-to-turn shift |Δs| >= τ."
-            ),
+            text=self._get_chart_guide_text("arc"),
             font=("Segoe UI", 8),
             style="Card.TLabel",
             foreground=self.colors["text_muted"],
             justify="left"
-        ).pack(anchor="w", pady=(2, 0))
+        )
+        self.chart_guide_desc.pack(anchor="w", pady=(2, 0))
+
+        # 4. Sponsor Showcase Banner (Non-intrusive)
+        sponsor_bar = ttk.Frame(self.tab_res_viz, style="Card.TFrame", padding=6)
+        sponsor_bar.pack(fill="x", pady=(6, 0))
+        ttk.Label(sponsor_bar, text="SPONSORED", font=("Segoe UI", 7, "bold"), foreground="#C9A94A", style="Card.TLabel").pack(side="left", padx=(4, 8))
+        ttk.Label(sponsor_bar, text="✨ Explore smart AI communication tools for seamless team workflows.", font=("Segoe UI", 9), style="Card.TLabel").pack(side="left")
+
+    def _get_chart_guide_text(self, mode: str) -> str:
+        if mode == "arc":
+            return (
+                "• Horizontal axis shows conversation turn index (t = 0, 1, 2...).\n"
+                "• Continuous dark line plots the continuous Emotional Arc smoothed curve showing narrative trajectory.\n"
+                "• Soft Green Zone (> +0.15) = positive polarity; Soft Red Zone (< -0.15) = negative polarity; Dashed line = equilibrium (s=0).\n"
+                "• Star markers denote algorithmically flagged turning points where turn-to-turn shift |Δs| >= τ.\n"
+                "• Top title classifies the story archetype (e.g. 'Man in a Hole' dip & recovery, 'Rags to Riches' rise, 'Tragedy' decline)."
+            )
+        elif mode == "treemap":
+            return (
+                "• Groups conversation messages and feedback by Topic Clusters (Issues, Support, Product, Resolution, General).\n"
+                "• Rectangle Area is strictly proportional to Feedback Frequency (number of turns / comments in that cluster).\n"
+                "• Color indicates Sentiment Tone: Green = Positive feedback, Slate/Gray = Neutral comments, Red = Negative issues.\n"
+                "• Labels show topic cluster name, sentiment class, turn count, and percentage share of total conversation."
+            )
+        elif mode == "sankey":
+            return (
+                "• Illustrates the Markov Flow of sentiment between categories from turn t (left) to turn t+1 (right).\n"
+                "• Specifically highlights how Neutral comments evolve over time into Positive (de-escalation) or Negative (escalation).\n"
+                "• Width of each curved ribbon represents the volume of turn-to-turn transitions.\n"
+                "• Top annotations summarize the exact percentage of neutral comments that evolved to positive vs negative."
+            )
+        return ""
+
+    def _switch_chart_mode(self, mode: str):
+        self.active_chart_mode = mode
+        mapping = {
+            "arc": self.btn_chart_arc,
+            "treemap": self.btn_chart_tree,
+            "sankey": self.btn_chart_sankey
+        }
+        for m, btn in mapping.items():
+            btn.configure(style="FilterActive.TButton" if m == mode else "Secondary.TButton")
+        
+        titles = {
+            "arc": "ℹ️ How to Read This Sentiment Arc Chart",
+            "treemap": "ℹ️ How to Read This Sentiment Tree Map",
+            "sankey": "ℹ️ How to Read This Sentiment Sankey Diagram"
+        }
+        if hasattr(self, "chart_guide_title"):
+            self.chart_guide_title.config(text=titles.get(mode, "ℹ️ How to Read This Chart"))
+        if hasattr(self, "chart_guide_desc"):
+            self.chart_guide_desc.config(text=self._get_chart_guide_text(mode))
+
+        if self.current_analysis_result:
+            self._render_active_chart()
 
     def _build_msgs_subpanel(self):
         # Filtering toolbar
@@ -895,20 +964,25 @@ class SentimentTrajectoryDesktopApp:
         vol = stats.get("volatility", 0.0)
         tps = stats.get("turning_points", [])
 
+        # 1. Update KPI ribbon with layman-friendly descriptors
+        mood_str = "😊 Positive" if mean_p > 0.15 else ("😟 Negative" if mean_p < -0.15 else "😐 Neutral")
+        shift_str = "↗ Improved" if net_d > 0.15 else ("↘ Dropped" if net_d < -0.15 else "➡ Steady")
+        vol_str = "Smooth" if vol < 0.15 else ("Moderate" if vol < 0.35 else "Bumpy")
+
         self.kpi_widgets["turns"].config(text=str(len(df)))
         self.kpi_widgets["mean"].config(
-            text=f"{mean_p:+.2f}",
+            text=f"{mood_str} ({mean_p:+.2f})",
             foreground=self.colors["pos"] if mean_p > 0.1 else (self.colors["neg"] if mean_p < -0.1 else self.colors["neu"])
         )
         self.kpi_widgets["drift"].config(
-            text=f"{net_d:+.2f}",
+            text=f"{shift_str} ({net_d:+.2f})",
             foreground=self.colors["pos"] if net_d > 0.1 else (self.colors["neg"] if net_d < -0.1 else self.colors["neu"])
         )
-        self.kpi_widgets["vol"].config(text=f"{vol:.2f}")
+        self.kpi_widgets["vol"].config(text=f"{vol_str} ({vol:.2f})")
         self.kpi_widgets["tps"].config(text=str(len(tps)))
 
-        # 2. Plot Trajectory Curve & Distribution
-        self._render_trajectory_plot(df, stats)
+        # 2. Render Active Visualization View
+        self._render_active_chart()
 
         # 3. Populate Message Explorer
         self._render_messages_table(df, stats)
@@ -916,15 +990,59 @@ class SentimentTrajectoryDesktopApp:
         # 4. Populate Written Report
         self._render_report_text(result["explanation"])
 
-    def _render_trajectory_plot(self, df: pd.DataFrame, stats: Dict[str, Any]):
+    def _render_active_chart(self):
+        if not self.current_analysis_result:
+            return
+        df = self.current_analysis_result["predictions_df"]
+        stats = self.current_analysis_result["trajectory_stats"]
+
+        if self.active_chart_mode == "arc":
+            self._render_sentiment_arc(df, stats)
+        elif self.active_chart_mode == "treemap":
+            self._render_treemap(df, stats)
+        elif self.active_chart_mode == "sankey":
+            self._render_sankey(df, stats)
+        else:
+            self._render_sentiment_arc(df, stats)
+
+    @staticmethod
+    def _classify_sentiment_arc_archetype(scores: np.ndarray) -> str:
+        if len(scores) < 3:
+            return "Micro-Dialogue Arc"
+        s_first = float(scores[0])
+        s_last = float(scores[-1])
+        drift = s_last - s_first
+        s_min = float(np.min(scores))
+        s_max = float(np.max(scores))
+        min_idx = int(np.argmin(scores))
+        max_idx = int(np.argmax(scores))
+        n = len(scores)
+
+        # "Man in a Hole": dip into negative in middle, followed by recovery
+        if s_min < -0.15 and (s_last - s_min) >= 0.30 and 0 < min_idx < n - 1:
+            return "Man in a Hole (Dip & De-escalation Recovery)"
+        # "Icarus": rise to high peak in middle, followed by fall
+        if s_max > 0.15 and (s_max - s_last) >= 0.30 and 0 < max_idx < n - 1:
+            return "Icarus (Rise & Fall / Escalation)"
+        # "Rags to Riches": continuous rise
+        if drift >= 0.35:
+            return "Rags to Riches (Continual Emotional Rise)"
+        # "Tragedy": continuous decline
+        if drift <= -0.35:
+            return "Tragedy (Continual Emotional Decline)"
+        # "Steady Equilibrium": stable sentiment
+        if float(np.std(scores)) < 0.14 and abs(drift) < 0.18:
+            return "Steady Equilibrium (Informational Balance)"
+        return "Fluctuating Journey (Multi-turn Waves)"
+
+    def _render_sentiment_arc(self, df: pd.DataFrame, stats: Dict[str, Any]):
         self.fig.clear()
         self.fig.patch.set_facecolor("#F8F6EF")
 
-        # 2 Subplots: Top = Polarity Trajectory, Bottom = Class Probabilities Breakdown
+        # 2 Subplots: Top = Polarity & Smoothed Arc, Bottom = Class Probabilities Breakdown
         ax1 = self.fig.add_subplot(2, 1, 1)
         ax2 = self.fig.add_subplot(2, 1, 2, sharex=ax1)
 
-        # Warm ivory axes background
         for ax in (ax1, ax2):
             ax.set_facecolor("#FFFDF6")
             ax.tick_params(colors="#777873", labelsize=8)
@@ -934,20 +1052,36 @@ class SentimentTrajectoryDesktopApp:
             ax.spines["right"].set_color("#E8E4D9")
 
         turns = np.arange(len(df))
-        scores = stats.get("scores", [])
-        smoothed = stats.get("smoothed_scores", scores)
+        scores = np.array(stats.get("scores", []), dtype=float)
+        if len(scores) == 0:
+            self.canvas.draw()
+            return
 
-        # Subplot 1: Polarity Trajectory
-        # Shaded Sentiment Zones — warm ivory palette
+        archetype = self._classify_sentiment_arc_archetype(scores)
+
+        # Subplot 1: Polarity & Continuous Smoothed Sentiment Arc
         ax1.axhspan(0.15, 1.0, color="#5AAE91", alpha=0.10, label="Positive (> +0.15)")
         ax1.axhspan(-0.15, 0.15, color="#8795A5", alpha=0.07, label="Neutral Zone")
         ax1.axhspan(-1.0, -0.15, color="#D97873", alpha=0.10, label="Negative (< -0.15)")
         ax1.axhline(0, color="#B0ADA5", linestyle="--", linewidth=0.9, label="Equilibrium (s=0)")
 
-        # Main Polarity Line
-        ax1.plot(turns, scores, marker="o", markersize=4, color=self.colors["primary"], linewidth=2.0, label="Polarity Score ($s_t$)")
+        # Raw turn polarity line
+        ax1.plot(turns, scores, marker="o", markersize=4, color="#8795A5", alpha=0.55, linestyle=":", linewidth=1.2, label="Turn Score ($s_t$)")
 
-        # Flag Turning Points with Star Callouts
+        # Continuous Smoothed Sentiment Arc
+        if len(scores) >= 3:
+            try:
+                poly_deg = min(3, max(1, len(scores) // 2))
+                poly_coeffs = np.polyfit(turns, scores, poly_deg)
+                arc_line = np.poly1d(poly_coeffs)(turns)
+                ax1.plot(turns, arc_line, color="#292A2D", linewidth=2.5, label="Emotional Arc Curve")
+                ax1.fill_between(turns, arc_line, 0, color="#292A2D", alpha=0.08)
+            except Exception:
+                ax1.plot(turns, scores, color="#292A2D", linewidth=2.2, label="Emotional Arc Curve")
+        else:
+            ax1.plot(turns, scores, color="#292A2D", linewidth=2.2, label="Emotional Arc Curve")
+
+        # Turning Point Flags
         for tp in stats.get("turning_points", []):
             t_idx = tp["turn_index"]
             s_val = tp["score_after"]
@@ -966,8 +1100,8 @@ class SentimentTrajectoryDesktopApp:
             )
 
         ax1.set_ylim(-1.05, 1.05)
-        ax1.set_ylabel("Predicted Polarity ($s_t$)", fontsize=9, fontweight="bold", color="#292A2D")
-        ax1.set_title("Conversation Sentiment Trajectory & Turning-Point Analysis", fontsize=11, fontweight="bold", pad=8, color="#292A2D")
+        ax1.set_ylabel("Polarity ($s_t$)", fontsize=9, fontweight="bold", color="#292A2D")
+        ax1.set_title(f"Sentiment Arc: {archetype}   [Net Drift: {stats.get('net_drift', 0):+.2f}]", fontsize=11, fontweight="bold", pad=8, color="#292A2D")
         ax1.grid(True, linestyle=":", alpha=0.5, color="#E8E4D9")
         ax1.legend(loc="upper left", fontsize=8, framealpha=0.9, facecolor="#FFFDF6", edgecolor="#E8E4D9")
 
@@ -987,6 +1121,332 @@ class SentimentTrajectoryDesktopApp:
         ax2.set_xticklabels([f"T{t}" for t in turns], fontsize=8, rotation=45 if len(turns) > 16 else 0)
         ax2.grid(True, linestyle=":", alpha=0.4, color="#E8E4D9")
         ax2.legend(loc="lower left", fontsize=8, framealpha=0.9, ncol=3, facecolor="#FFFDF6", edgecolor="#E8E4D9")
+
+        self.fig.tight_layout()
+        self.canvas.draw()
+
+    def _render_trajectory_plot(self, df: pd.DataFrame, stats: Dict[str, Any]):
+        """Alias for backwards compatibility."""
+        self._render_sentiment_arc(df, stats)
+
+    @staticmethod
+    def _cluster_feedback_messages(df: pd.DataFrame) -> List[Dict[str, Any]]:
+        topic_defs = [
+            ("Issues & Technical", ["error", "bug", "fail", "broke", "issue", "problem", "freeze", "crash", "down", "delay", "slow", "stuck", "leak", "pool", "reboot", "timeout", "incident"]),
+            ("Support & Service", ["help", "call", "contact", "response", "check", "update", "looking", "sorry", "assist", "ticket", "clarify", "answer", "please", "confirm"]),
+            ("Product & Features", ["app", "ui", "feature", "design", "work", "interface", "tool", "screen", "button", "layout", "mobile", "desktop", "system", "performance"]),
+            ("Resolution & Delivery", ["fixed", "solved", "verified", "ready", "done", "complete", "fine", "working", "success", "patch", "release", "shipped", "resolved", "good", "great", "thanks"]),
+        ]
+        
+        clusters = {}
+        for idx, row in df.iterrows():
+            text = str(row.get("text", "")).lower()
+            sent = str(row.get("pred_sentiment", "neutral")).lower()
+            matched_topic = "General Feedback"
+            for t_name, keywords in topic_defs:
+                if any(kw in text for kw in keywords):
+                    matched_topic = t_name
+                    break
+            key = (matched_topic, sent)
+            clusters[key] = clusters.get(key, 0) + 1
+            
+        items = []
+        for (topic, sent), count in clusters.items():
+            items.append({
+                "topic": topic,
+                "sentiment": sent,
+                "count": count
+            })
+        items.sort(key=lambda x: x["count"], reverse=True)
+        return items
+
+    @staticmethod
+    def _compute_treemap_rects(items: List[Dict[str, Any]], x: float, y: float, w: float, h: float) -> List[Dict[str, Any]]:
+        if not items:
+            return []
+        total = sum(it["count"] for it in items)
+        if total == 0:
+            return []
+        if len(items) == 1:
+            item = dict(items[0])
+            item["rect"] = (x, y, w, h)
+            return [item]
+            
+        half = total / 2.0
+        acc = 0
+        split_idx = 1
+        for i, it in enumerate(items):
+            acc += it["count"]
+            if acc >= half or i == len(items) - 1:
+                split_idx = max(1, i if (acc - it["count"] > 0 and abs(acc - it["count"] - half) < abs(acc - half)) else i + 1)
+                break
+        
+        group1 = items[:split_idx]
+        group2 = items[split_idx:]
+        w1 = sum(it["count"] for it in group1)
+        fraction = w1 / total
+        
+        result = []
+        if w >= h:
+            w_left = w * fraction
+            w_right = w - w_left
+            result.extend(SentimentTrajectoryDesktopApp._compute_treemap_rects(group1, x, y, w_left, h))
+            result.extend(SentimentTrajectoryDesktopApp._compute_treemap_rects(group2, x + w_left, y, w_right, h))
+        else:
+            h_top = h * fraction
+            h_bottom = h - h_top
+            result.extend(SentimentTrajectoryDesktopApp._compute_treemap_rects(group1, x, y, w, h_top))
+            result.extend(SentimentTrajectoryDesktopApp._compute_treemap_rects(group2, x, y + h_top, w, h_bottom))
+            
+        return result
+
+    def _render_treemap(self, df: pd.DataFrame, stats: Dict[str, Any]):
+        self.fig.clear()
+        self.fig.patch.set_facecolor("#F8F6EF")
+
+        ax = self.fig.add_subplot(1, 1, 1)
+        ax.set_facecolor("#FFFDF6")
+        ax.set_xlim(0, 100)
+        ax.set_ylim(0, 100)
+        ax.set_xticks([])
+        ax.set_yticks([])
+        for spine in ax.spines.values():
+            spine.set_visible(False)
+
+        items = self._cluster_feedback_messages(df)
+        total_items = sum(it["count"] for it in items)
+        if total_items == 0:
+            ax.text(50, 50, "No messages to display in Tree Map", ha="center", va="center", fontsize=11, color="#777873")
+            self.canvas.draw()
+            return
+
+        rects = self._compute_treemap_rects(items, x=2.0, y=2.0, w=96.0, h=93.0)
+
+        color_map = {
+            "positive": ("#5AAE91", "#1B4D3E"),
+            "neutral": ("#8795A5", "#2C3E50"),
+            "negative": ("#D97873", "#5C1D1A")
+        }
+
+        for item in rects:
+            rx, ry, rw, rh = item["rect"]
+            sent = item["sentiment"]
+            fill_color, text_color = color_map.get(sent, ("#B0ADA5", "#292A2D"))
+
+            # Draw rectangle patch
+            patch = mpatches.FancyBboxPatch(
+                (rx + 0.4, ry + 0.4),
+                max(0.1, rw - 0.8),
+                max(0.1, rh - 0.8),
+                boxstyle="round,pad=0.2",
+                facecolor=fill_color,
+                edgecolor="#FFFDF6",
+                linewidth=1.5,
+                alpha=0.88
+            )
+            ax.add_patch(patch)
+
+            # Center text formatting
+            cx = rx + rw / 2.0
+            cy = ry + rh / 2.0
+            pct = (item["count"] / total_items) * 100
+
+            if rw > 14 and rh > 12:
+                ax.text(
+                    cx, cy + (rh * 0.12),
+                    item["topic"],
+                    ha="center", va="center",
+                    fontsize=9 if rw > 22 else 8,
+                    fontweight="bold",
+                    color="#FFFFFF"
+                )
+                ax.text(
+                    cx, cy - (rh * 0.12),
+                    f"{sent.capitalize()}: {item['count']} ({pct:.1f}%)",
+                    ha="center", va="center",
+                    fontsize=8 if rw > 22 else 7,
+                    fontweight="bold",
+                    color="#F8F6EF"
+                )
+            elif rw > 8 and rh > 6:
+                ax.text(
+                    cx, cy,
+                    f"{item['topic'][:10]}..\n{item['count']} ({pct:.0f}%)",
+                    ha="center", va="center",
+                    fontsize=7,
+                    color="#FFFFFF"
+                )
+
+        # Legend
+        legend_elements = [
+            mpatches.Patch(facecolor="#5AAE91", label="Positive Sentiment", alpha=0.88),
+            mpatches.Patch(facecolor="#8795A5", label="Neutral Sentiment", alpha=0.88),
+            mpatches.Patch(facecolor="#D97873", label="Negative Sentiment", alpha=0.88)
+        ]
+        ax.legend(handles=legend_elements, loc="upper right", bbox_to_anchor=(0.99, 1.04), ncol=3, fontsize=8, facecolor="#FFFDF6", edgecolor="#E8E4D9")
+        ax.set_title(f"Sentiment Tree Map — Grouped by Topic Clusters (Size = Feedback Frequency, N = {total_items})", fontsize=11, fontweight="bold", pad=12, color="#292A2D")
+
+        self.fig.tight_layout()
+        self.canvas.draw()
+
+    def _render_sankey(self, df: pd.DataFrame, stats: Dict[str, Any]):
+        self.fig.clear()
+        self.fig.patch.set_facecolor("#F8F6EF")
+
+        ax = self.fig.add_subplot(1, 1, 1)
+        ax.set_facecolor("#FFFDF6")
+        ax.set_xlim(0, 100)
+        ax.set_ylim(0, 100)
+        ax.set_xticks([])
+        ax.set_yticks([])
+        for spine in ax.spines.values():
+            spine.set_visible(False)
+
+        preds = [str(s).lower() for s in df["pred_sentiment"].values]
+        if len(preds) < 2:
+            ax.text(50, 50, "Need at least 2 conversation turns to compute sentiment transitions", ha="center", va="center", fontsize=11, color="#777873")
+            self.canvas.draw()
+            return
+
+        states = ["positive", "neutral", "negative"]
+        state_labels = {"positive": "Positive", "neutral": "Neutral", "negative": "Negative"}
+        color_map = {"positive": "#5AAE91", "neutral": "#8795A5", "negative": "#D97873"}
+
+        # Build transition matrix
+        trans = {s1: {s2: 0 for s2 in states} for s1 in states}
+        for i in range(len(preds) - 1):
+            s_from = preds[i] if preds[i] in states else "neutral"
+            s_to = preds[i + 1] if preds[i + 1] in states else "neutral"
+            trans[s_from][s_to] += 1
+
+        total_trans = len(preds) - 1
+
+        # Source totals & Target totals
+        src_totals = {s: sum(trans[s].values()) for s in states}
+        tgt_totals = {s: sum(trans[other][s] for other in states) for s in states}
+
+        # Calculate node heights and positions
+        y_margin = 12.0
+        gap = 5.0
+        avail_h = 100.0 - (2 * y_margin) - (2 * gap)
+
+        src_y = {}
+        curr_y = 100.0 - y_margin
+        for s in states:
+            h = max(2.0, (src_totals[s] / total_trans) * avail_h) if total_trans > 0 else avail_h / 3.0
+            src_y[s] = (curr_y - h, curr_y)
+            curr_y -= (h + gap)
+
+        tgt_y = {}
+        curr_y = 100.0 - y_margin
+        for s in states:
+            h = max(2.0, (tgt_totals[s] / total_trans) * avail_h) if total_trans > 0 else avail_h / 3.0
+            tgt_y[s] = (curr_y - h, curr_y)
+            curr_y -= (h + gap)
+
+        x_src_right = 26.0
+        x_src_left = 14.0
+        x_tgt_left = 74.0
+        x_tgt_right = 86.0
+
+        # Draw connecting Bézier ribbons
+        src_curr_flow_y = {s: src_y[s][1] for s in states}
+        tgt_curr_flow_y = {s: tgt_y[s][1] for s in states}
+
+        for s1 in states:
+            s1_total = max(1, src_totals[s1])
+            s1_h = src_y[s1][1] - src_y[s1][0]
+            for s2 in states:
+                cnt = trans[s1][s2]
+                if cnt == 0:
+                    continue
+                s2_total = max(1, tgt_totals[s2])
+                s2_h = tgt_y[s2][1] - tgt_y[s2][0]
+
+                flow_h_src = (cnt / s1_total) * s1_h
+                flow_h_tgt = (cnt / s2_total) * s2_h
+
+                y_s_top = src_curr_flow_y[s1]
+                y_s_bot = y_s_top - flow_h_src
+                src_curr_flow_y[s1] = y_s_bot
+
+                y_t_top = tgt_curr_flow_y[s2]
+                y_t_bot = y_t_top - flow_h_tgt
+                tgt_curr_flow_y[s2] = y_t_bot
+
+                # Create Bézier Ribbon Path
+                c_dx = (x_tgt_left - x_src_right) * 0.5
+                verts = [
+                    (x_src_right, y_s_top),
+                    (x_src_right + c_dx, y_s_top),
+                    (x_tgt_left - c_dx, y_t_top),
+                    (x_tgt_left, y_t_top),
+                    (x_tgt_left, y_t_bot),
+                    (x_tgt_left - c_dx, y_t_bot),
+                    (x_src_right + c_dx, y_s_bot),
+                    (x_src_right, y_s_bot),
+                    (x_src_right, y_s_top),
+                ]
+                codes = [
+                    MplPath.MOVETO,
+                    MplPath.CURVE4,
+                    MplPath.CURVE4,
+                    MplPath.CURVE4,
+                    MplPath.LINETO,
+                    MplPath.CURVE4,
+                    MplPath.CURVE4,
+                    MplPath.CURVE4,
+                    MplPath.CLOSEPOLY,
+                ]
+                path = MplPath(verts, codes)
+                patch = mpatches.PathPatch(path, facecolor=color_map[s1], edgecolor=color_map[s1], alpha=0.36, lw=0.5)
+                ax.add_patch(patch)
+
+        # Draw Source Nodes (Left)
+        for s in states:
+            y_bot, y_top = src_y[s]
+            h = y_top - y_bot
+            rect = mpatches.FancyBboxPatch((x_src_left, y_bot), x_src_right - x_src_left, h, boxstyle="round,pad=0.2", facecolor=color_map[s], edgecolor="#FFFDF6", linewidth=1.5)
+            ax.add_patch(rect)
+            ax.text(
+                x_src_left - 1.5, y_bot + h / 2.0,
+                f"{state_labels[s]}\n({src_totals[s]})",
+                ha="right", va="center", fontsize=8, fontweight="bold", color="#292A2D"
+            )
+
+        # Draw Target Nodes (Right)
+        for s in states:
+            y_bot, y_top = tgt_y[s]
+            h = y_top - y_bot
+            rect = mpatches.FancyBboxPatch((x_tgt_left, y_bot), x_tgt_right - x_tgt_left, h, boxstyle="round,pad=0.2", facecolor=color_map[s], edgecolor="#FFFDF6", linewidth=1.5)
+            ax.add_patch(rect)
+            ax.text(
+                x_tgt_right + 1.5, y_bot + h / 2.0,
+                f"{state_labels[s]}\n({tgt_totals[s]})",
+                ha="left", va="center", fontsize=8, fontweight="bold", color="#292A2D"
+            )
+
+        # Column Headers
+        ax.text((x_src_left + x_src_right) / 2.0, 98.0, "Initial State (Turn t)", ha="center", va="center", fontsize=9, fontweight="bold", color="#292A2D")
+        ax.text((x_tgt_left + x_tgt_right) / 2.0, 98.0, "Next State (Turn t+1)", ha="center", va="center", fontsize=9, fontweight="bold", color="#292A2D")
+
+        # Specific Neutral Evolution Callout
+        neu_total = src_totals["neutral"]
+        if neu_total > 0:
+            n_pos = trans["neutral"]["positive"]
+            n_neg = trans["neutral"]["negative"]
+            n_neu = trans["neutral"]["neutral"]
+            p_pos = (n_pos / neu_total) * 100.0
+            p_neg = (n_neg / neu_total) * 100.0
+            p_neu = (n_neu / neu_total) * 100.0
+            insight = f"Neutral Evolution Dynamics: {n_pos} ({p_pos:.0f}%) -> Positive  •  {n_neg} ({p_neg:.0f}%) -> Negative  •  {n_neu} ({p_neu:.0f}%) -> Neutral"
+        else:
+            insight = "Neutral Evolution: No neutral initial states detected in this dialogue."
+
+        bbox_props = dict(boxstyle="round,pad=0.5", facecolor="#FFFDF6", edgecolor="#E8E4D9", alpha=0.95)
+        ax.text(50.0, 4.0, insight, ha="center", va="center", fontsize=8, fontweight="bold", color="#292A2D", bbox=bbox_props)
+
+        ax.set_title("Sentiment Sankey Flow — Evolution of Sentiments Over Time", fontsize=11, fontweight="bold", pad=12, color="#292A2D")
 
         self.fig.tight_layout()
         self.canvas.draw()

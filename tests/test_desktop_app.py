@@ -62,3 +62,46 @@ def test_formula_injection_defense():
     for col in ["text", "speaker", "pred_sentiment"]:
         for val in sanitized[col]:
             assert not val.startswith(("=", "+", "-", "@")), f"Unsanitized formula detected: {val}"
+
+
+def test_sentiment_arc_archetype_classification():
+    from src.desktop_app import SentimentTrajectoryDesktopApp
+    import numpy as np
+
+    # Test "Man in a Hole" (dip into negative, then recovery to positive)
+    scores_hole = np.array([0.1, -0.4, -0.6, 0.2, 0.5])
+    archetype = SentimentTrajectoryDesktopApp._classify_sentiment_arc_archetype(scores_hole)
+    assert "Man in a Hole" in archetype
+
+    # Test "Rags to Riches" (continual rise)
+    scores_rise = np.array([-0.3, -0.1, 0.1, 0.4, 0.6])
+    archetype = SentimentTrajectoryDesktopApp._classify_sentiment_arc_archetype(scores_rise)
+    assert "Rags to Riches" in archetype
+
+    # Test "Tragedy" (continual decline)
+    scores_fall = np.array([0.5, 0.2, -0.1, -0.4, -0.7])
+    archetype = SentimentTrajectoryDesktopApp._classify_sentiment_arc_archetype(scores_fall)
+    assert "Tragedy" in archetype
+
+
+def test_treemap_clustering_and_partition():
+    from src.desktop_app import SentimentTrajectoryDesktopApp
+
+    sample_df = pd.DataFrame([
+        {"text": "The server crash and error is terrible", "pred_sentiment": "negative"},
+        {"text": "Database pool bug still down", "pred_sentiment": "negative"},
+        {"text": "Customer support helped quickly", "pred_sentiment": "positive"},
+        {"text": "Everything is fixed and verified", "pred_sentiment": "positive"},
+        {"text": "Good morning team", "pred_sentiment": "neutral"}
+    ])
+
+    clusters = SentimentTrajectoryDesktopApp._cluster_feedback_messages(sample_df)
+    assert len(clusters) >= 3
+    total_cnt = sum(c["count"] for c in clusters)
+    assert total_cnt == len(sample_df)
+
+    # Verify rectangle partition covers requested area
+    rects = SentimentTrajectoryDesktopApp._compute_treemap_rects(clusters, 0.0, 0.0, 100.0, 100.0)
+    assert len(rects) == len(clusters)
+    total_area = sum(r["rect"][2] * r["rect"][3] for r in rects)
+    assert abs(total_area - 10000.0) < 1e-4
