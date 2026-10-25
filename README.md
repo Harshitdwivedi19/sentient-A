@@ -200,17 +200,77 @@ Metrics recorded from the official validation benchmark evaluation ([outputs/met
 
 ## Quick Start & Installation
 
-### Prerequisites
-- Python 3.11 or Python 3.12
-- Git
-- Windows, macOS, or Linux
+### Option 1: Install via pip (Recommended)
 
-### 1. Clone Repository & Setup Virtual Environment
+`sentient-a` is available on [PyPI](https://pypi.org/project/sentient-a/) for Python 3.9 through 3.12:
+
+```bash
+pip install sentient-a
+```
+
+#### Command-Line Usage (CLI)
+
+Once installed, the `sentient` CLI command is available directly in your terminal:
+
+```bash
+# Analyze conversation text directly (supports English, Hindi, and Hinglish)
+sentient analyze "Customer: Mera order cancel karna hai bohot delay hua\nSupport: Sir, hum abhi check karke resolve karte hain\nCustomer: Theek hai, thank you"
+
+# Analyze an exported WhatsApp chat file (.txt)
+sentient analyze chat.txt
+
+# Export analysis results as JSON
+sentient analyze chat.txt --format json --output results.json
+
+# Launch the desktop graphical interface
+sentient gui
+
+# Start the local REST API server
+sentient api --port 8000
+```
+
+#### Python Library Usage
+
+You can import and use `sentient` programmatically in Python applications:
+
+```python
+from sentient import ConversationSentimentAnalyzer
+
+# Initialize the analyzer with automatic language routing
+analyzer = ConversationSentimentAnalyzer()
+
+# Multi-turn conversation (English, Hindi, or Romanized Hinglish)
+dialogue = """
+Customer: Order abhi tak deliver nahi hua, bohot pareshani ho rahi hai.
+Support: I apologize for the delay. Let me check the courier tracking right away.
+Customer: Thank you, that was quick and helpful.
+"""
+
+# Run context-aware trajectory analysis
+result = analyzer.analyze_conversation(dialogue, model_type="auto")
+
+# 1. Executive Summary & Health Rating
+summary_info = result["summary_and_results"]
+print("Health Status:", summary_info["analysis_results"]["health_status"])
+print("Executive Summary:", summary_info["executive_summary"])
+
+# 2. Turn-by-Turn Sentiment Trajectory
+for turn in result["trajectory"]["turns"]:
+    print(f"Turn {turn['turn_id']} ({turn['speaker']}): {turn['sentiment']} (score: {turn['sentiment_score']:.2f})")
+
+# 3. Detected Turning Points
+for tp in result["trajectory"]["turning_points"]:
+    print(f"Shift at Turn {tp['turn_id']}: from {tp['prev_sentiment']} to {tp['new_sentiment']} (delta: {tp['delta']:.2f})")
+```
+
+---
+
+### Option 2: Clone Repository (Development Setup)
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/sentiment-trajectory-analysis.git
-cd sentiment-trajectory-analysis
+git clone https://github.com/Harshitdwivedi19/sentient-A.git
+cd sentient-A
 
 # Create isolated virtual environment
 python -m venv .venv
@@ -221,19 +281,13 @@ python -m venv .venv
 # On Linux / macOS:
 source .venv/bin/activate
 
-# Upgrade pip and install pinned dependencies
+# Upgrade pip and install editable package with dependencies
 pip install --upgrade pip
+pip install -e .
 pip install -r requirements.txt
 ```
 
-### 2. Download MELD Dataset & Prepare Processed Data
-
-```bash
-# Download official MELD splits, validate turn ordering, and standardize schema
-python src/prepare_data.py
-```
-
-### 3. Run Automated Test Suite (26/26 Tests)
+### Run Automated Test Suite (40/40 Tests)
 
 ```bash
 pytest tests/ -v
