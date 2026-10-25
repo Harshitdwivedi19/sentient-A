@@ -1,0 +1,48 @@
+{
+  "model_name": "Hindi_Hinglish_Hybrid_TFIDF",
+  "split_name": "val",
+  "accuracy": 0.7778,
+  "macro_f1": 0.7676,
+  "weighted_f1": 0.7778,
+  "per_class": {
+    "negative": {
+      "precision": 0.7778,
+      "recall": 0.7778,
+      "f1": 0.7778,
+      "support": 9
+    },
+    "neutral": {
+      "precision": 0.625,
+      "recall": 0.625,
+      "f1": 0.625,
+      "support": 8
+    },
+    "positive": {
+      "precision": 0.9,
+      "recall": 0.9,
+      "f1": 0.9,
+      "support": 10
+    }
+  },
+  "confusion_matrix": [
+    [
+      7,
+      2,
+      0
+    ],
+    [
+      2,
+      5,
+      1
+    ],
+    [
+      0,
+      1,
+      9
+    ]
+  ],
+  "calibration": {
+    "brier_score": 0.405,
+    "expected_calibration_error": 0.2503
+  }
+}

@@ -1,0 +1,28 @@
+dialogue_id,turn_id,speaker,text,sentiment,label
+3,0,Lead,Kya kisi ne payment gateway alerts check kiye?,neutral,1
+3,1,Dev1,"Haan, production me transactions fail ho rahe hain",negative,0
+3,2,Lead,"Ye toh bohot badi problem hai, error log kya bol raha hai?",negative,0
+3,3,Dev2,"Redis connection pool exhaust ho gaya hai, leak lag raha hai",negative,0
+3,4,Lead,Main config update kar raha hu aur pool size badha raha hu,neutral,1
+3,5,Dev1,"Patch deploy ho gaya hai, verification start karo",neutral,1
+3,6,Dev2,"Ab payments successfully process ho rahe hain, error rate 0 ho gaya",positive,2
+3,7,Lead,Shandar kaam team! Ekdum timely aur badiya fix kiya sabne,positive,2
+10,0,Manager,"Client demo kal subah hai, sprint deliverables ready hain?",neutral,1
+10,1,Developer,"Nahi sir, login module abhi bhi test cases me fail ho raha hai",negative,0
+10,2,QA,"UI layout mobile view pe pura toot raha hai, bohot bug hain",negative,0
+10,3,Manager,"Yeh accept nahi hoga, time bohot kam bacha hai aur stress badh raha hai",negative,0
+10,4,Developer,Main overnight baithke CSS aur authentication pipeline fix kar dunga,neutral,1
+10,5,QA,"Subah 6 baje ka build ekdum stable hai, saare critical tests pass ho gaye!",positive,2
+10,6,Manager,"Superb work! Client ne demo approve kar diya hai, sabko shabash",positive,2
+22,0,क्रेता,पैकेजिंग फटी हुई थी और उत्पाद क्षतिग्रस्त निकला,negative,0
+22,1,कंपनी,"असुविधा के लिए क्षमा, हम नया उत्पाद आज ही भेज रहे हैं",positive,2
+22,2,क्रेता,"नया उत्पाद बिल्कुल सही स्थिति में मिल गया, बहुत आभार",positive,2
+23,0,क्रेता,paikejing phati hui thi aur utpad kshatigrast nikala,negative,0
+23,1,कंपनी,"asuvidha ke lie kshama, ham naya utpad aj hi bhej rahe hain",positive,2
+23,2,क्रेता,"naya utpad bilkul sahi sthiti men mil gaya, bahut abhar",positive,2
+32,0,Customer,"Mera monthly e-statement password protected hai, password kya hai?",neutral,1
+32,1,Helpdesk,Password aapke date of birth aur phone number ke last 4 digits hain,neutral,1
+32,2,Customer,"Document open ho gaya hai, accurate information ke liye thanks",positive,2
+35,0,छात्र,pathyakram ki samagri bahut kathin aur aspasht thi,negative,0
+35,1,शिक्षक,hamane atirikt spashtikaran vidiyo aur nots apalod kie hain,neutral,1
+35,2,छात्र,"ab sabhi avadharanaen bahut achchhe se samajh a rahi hain, dhanyavad",positive,2

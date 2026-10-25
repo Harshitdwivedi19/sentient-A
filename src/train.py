@@ -28,6 +28,7 @@ import torch
 from torch.utils.data import Dataset
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
+from sklearn.pipeline import FeatureUnion
 from sklearn.utils.class_weight import compute_class_weight
 
 from transformers import (
@@ -42,6 +43,7 @@ from transformers import (
 
 from src.context import build_context_representations
 from src.evaluate import evaluate_predictions, plot_and_save_confusion_matrix
+from src.hinglish_normalizer import normalize_whatsapp_text
 
 logging.basicConfig(
     level=logging.INFO,
@@ -223,6 +225,131 @@ def train_tfidf_baseline(config: Dict[str, Any], ngram_mode: str = "both") -> Di
     logger.info(f"Saved confusion matrix plot to {cm_fig_path}")
 
     return full_report
+
+
+def train_hindi_baseline(config: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Train and evaluate Context-Aware Hybrid (Word + Char n-Gram) TF-IDF + Logistic Regression
+    on Devanagari Hindi and Romanized Hindi (Hinglish) conversational datasets.
+    """
+    processed_dir = Path(config["paths"]["processed_data_dir"])
+    models_dir = Path(config["paths"]["models_dir"]) / "hindi_baseline_tfidf"
+    metrics_dir = Path(config["paths"]["metrics_dir"])
+    preds_dir = Path(config["paths"]["predictions_dir"])
+    figures_dir = Path(config["paths"]["figures_dir"])
+
+    models_dir.mkdir(parents=True, exist_ok=True)
+    metrics_dir.mkdir(parents=True, exist_ok=True)
+    preds_dir.mkdir(parents=True, exist_ok=True)
+    figures_dir.mkdir(parents=True, exist_ok=True)
+
+    train_path = processed_dir / "hindi_train.csv"
+    val_path = processed_dir / "hindi_val.csv"
+
+    if not train_path.exists():
+        from src.prepare_hindi_data import build_and_save_hindi_datasets
+        build_and_save_hindi_datasets(str(processed_dir))
+
+    logger.info(f"Loading Hindi & Hinglish training data from {train_path}...")
+    train_df = pd.read_csv(train_path)
+    logger.info(f"Loading Hindi & Hinglish validation data from {val_path}...")
+    val_df = pd.read_csv(val_path)
+
+    # Normalize elongations and WhatsApp shorthand
+    train_df_clean = train_df.copy()
+    train_df_clean["text"] = train_df_clean["text"].astype(str).apply(normalize_whatsapp_text)
+
+    val_df_clean = val_df.copy()
+    val_df_clean["text"] = val_df_clean["text"].astype(str).apply(normalize_whatsapp_text)
+
+    # Build context representations (window_size=3)
+    k = config.get("models", {}).get("context", {}).get("default_window_size", 3)
+    train_ctx = build_context_representations(train_df_clean, window_size=k)
+    val_ctx = build_context_representations(val_df_clean, window_size=k)
+
+    train_texts = train_ctx["context_text"].tolist()
+    y_train = train_df["label"].values
+
+    val_texts = val_ctx["context_text"].tolist()
+    y_val = val_df["label"].values
+
+    logger.info(f"Fitting Hybrid Word (1-2) + Char_wb (2-5) TF-IDF Vectorizer on {len(train_texts)} turns...")
+    vectorizer = FeatureUnion([
+        ("word", TfidfVectorizer(
+            analyzer="word",
+            ngram_range=(1, 2),
+            max_features=6000,
+            sublinear_tf=True,
+            lowercase=True
+        )),
+        ("char", TfidfVectorizer(
+            analyzer="char_wb",
+            ngram_range=(2, 5),
+            max_features=12000,
+            sublinear_tf=True,
+            lowercase=True
+        ))
+    ])
+
+    X_train = vectorizer.fit_transform(train_texts)
+    X_val = vectorizer.transform(val_texts)
+
+    clf = LogisticRegression(
+        C=1.0,
+        max_iter=1000,
+        class_weight="balanced",
+        random_state=config["project"]["seed"],
+        solver="lbfgs"
+    )
+    clf.fit(X_train, y_train)
+
+    val_probs = clf.predict_proba(X_val)
+    val_preds = np.argmax(val_probs, axis=1)
+
+    target_names = config["dataset"]["target_names"]
+    eval_report = evaluate_predictions(
+        y_true=y_val,
+        y_pred=val_preds,
+        y_prob=val_probs,
+        target_names=target_names,
+        model_name="Hindi_Hinglish_Hybrid_TFIDF",
+        split_name="val"
+    )
+
+    # Save artifacts
+    joblib.dump(vectorizer, models_dir / "tfidf_vectorizer.joblib")
+    joblib.dump(clf, models_dir / "logistic_regression.joblib")
+
+    meta = {
+        "model_name": "Hindi_Hinglish_Hybrid_TFIDF",
+        "context_window_k": k,
+        "classes": target_names,
+        "features": "word(1,2) + char_wb(2,5)",
+        "train_samples": len(train_texts),
+        "val_samples": len(val_texts)
+    }
+    with open(models_dir / "config.json", "w", encoding="utf-8") as f:
+        json.dump(meta, f, indent=2)
+
+    with open(metrics_dir / "hindi_baseline_metrics.json", "w", encoding="utf-8") as f:
+        json.dump(eval_report, f, indent=2)
+
+    val_df_out = val_df.copy()
+    val_df_out["pred_label"] = val_preds
+    val_df_out["pred_sentiment"] = [target_names[p] for p in val_preds]
+    for i, name in enumerate(target_names):
+        val_df_out[f"prob_{name}"] = val_probs[:, i]
+    val_df_out.to_csv(preds_dir / "hindi_baseline_val_preds.csv", index=False)
+
+    cm = np.array(eval_report["confusion_matrix"])
+    plot_and_save_confusion_matrix(
+        cm=cm,
+        target_names=target_names,
+        output_path=figures_dir / "hindi_baseline_val_cm.png",
+        title="Confusion Matrix: Hindi & Hinglish Hybrid TF-IDF"
+    )
+
+    return eval_report
 
 
 def train_roberta_independent(config: Dict[str, Any], args) -> Dict[str, Any]:
@@ -619,7 +746,7 @@ def main():
         "--model",
         type=str,
         default="tfidf",
-        choices=["tfidf", "roberta_independent", "roberta_context"],
+        choices=["tfidf", "roberta_independent", "roberta_context", "hindi_baseline"],
         help="Model architecture to train"
     )
     parser.add_argument(
@@ -699,6 +826,20 @@ def main():
         report = train_roberta_context(config, args)
         print("\n" + "=" * 70)
         print(f"ROBERTA CONTEXT-AWARE (k={report.get('context_window_k', 3)}) VALIDATION COMPLETE")
+        print("=" * 70)
+        print(f"  Accuracy:    {report['accuracy']:.4f}")
+        print(f"  Macro-F1:    {report['macro_f1']:.4f}")
+        print(f"  Weighted-F1: {report['weighted_f1']:.4f}")
+        print(f"  Brier Score: {report['calibration']['brier_score']:.4f}")
+        print(f"  Expected Calibration Error: {report['calibration']['expected_calibration_error']:.4f}")
+        print("\n  Per-Class Breakdown:")
+        for sentiment, p_stat in report["per_class"].items():
+            print(f"    - {sentiment.capitalize():<8}: Precision={p_stat['precision']:.4f}, Recall={p_stat['recall']:.4f}, F1={p_stat['f1']:.4f} (Support: {p_stat['support']})")
+        print("=" * 70 + "\n")
+    elif args.model == "hindi_baseline":
+        report = train_hindi_baseline(config)
+        print("\n" + "=" * 70)
+        print("HINDI & HINGLISH HYBRID TF-IDF BASELINE VALIDATION COMPLETE")
         print("=" * 70)
         print(f"  Accuracy:    {report['accuracy']:.4f}")
         print(f"  Macro-F1:    {report['macro_f1']:.4f}")

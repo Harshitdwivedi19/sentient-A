@@ -35,6 +35,30 @@ Joey: Woah... man, that is rough. Are you serious?
 Ross: Yeah, I'm completely devastated. I have no idea what to do.
 Joey: Come on, Ross. We're gonna order pizza, hang out, and talk through it.
 Ross: Thanks Joey. You're a true friend.`
+  },
+  whatsapp_hinglish: {
+    name: "Sample 4: WhatsApp Hinglish (Customer Escalation & Fix)",
+    text: `Customer: Hello, mera order #98211 abhi tak deliver nahi hua
+Support: Sir, let me check the tracking status for your order
+Customer: Bhai 4 din se delay chal raha hai, bohot bekar service hai tumhari!
+Support: Hum samajh sakte hain aapki pareshani, delivery partner se baat ho rahi hai
+Customer: Mera paisa barbad ho gaya, urgent tha ye parcel!
+Support: Sir package dispatch ho chuka hai aur agle 2 ghante me aapko mil jayega
+Customer: Pakka mil jayega na? Mujhe aaj hi chahiye tha
+Support: Haanji sir, guaranteed aaj deliver hoga. Asuvidha ke liye maafi
+Customer: Chalo theek hai, bohot bohot shukriya aapki madad ke liye
+Support: Thank you for contacting us, aapka din shubh ho!`
+  },
+  whatsapp_hindi: {
+    name: "Sample 5: WhatsApp Hindi (पारिवारिक वार्तालाप)",
+    text: `अमित: नमस्ते सभी को, क्या इस रविवार को मिलने की योजना बन सकती है?
+नेहा: हाँ ज़रूर, बहुत दिनों से सब मिले नहीं हैं!
+रोहन: मौसम बहुत खराब रहने वाला है, भारी बारिश की चेतावनी आई है
+अमित: अरे यार, फिर बाहर जाना बहुत मुश्किल और परेशानी भरा होगा
+नेहा: चिंता मत करो, हम सब घर पर ही दोपहर का भोजन रख सकते हैं
+रोहन: यह तो बहुत ही बढ़िया और सुरक्षित विचार है!
+अमित: सबको बहुत खुशी होगी, मैं गरमा-गरम नाश्ता लेकर आऊँगा
+नेहा: धन्यवाद भाई, रविवार को दोपहर में मिलते हैं`
   }
 };
 
@@ -875,8 +899,16 @@ function downloadFile(name, content, mime) {
 // ---------------------------------------------------------------------------
 function runStandaloneAnalysis(rawText, tau) {
   const lines = rawText.split("\n").map(l => l.trim()).filter(l => l.length > 0);
-  const posWords = ["thank", "thanks", "appreciate", "helpful", "good", "great", "awesome", "relief", "love", "apologize", "sorry", "glad", "happy", "yes", "fixed", "patch"];
-  const negWords = ["why", "terrible", "bad", "ruined", "fault", "panic", "devastated", "rough", "overwhelmed", "cancel", "hate", "issue", "exhausted", "late", "error", "bug"];
+  const posWords = [
+    "thank", "thanks", "appreciate", "helpful", "good", "great", "awesome", "relief", "love", "apologize", "sorry", "glad", "happy", "yes", "fixed", "patch",
+    "shukriya", "dhanyawad", "badhiya", "mast", "shandar", "zabardast", "theek", "thik", "accha", "achha", "acha", "sahi", "khush",
+    "धन्यवाद", "आभार", "बढ़िया", "शानदार", "खुशी", "मदद", "सराहनीय", "सुचारू", "सुरक्षित"
+  ];
+  const negWords = [
+    "why", "terrible", "bad", "ruined", "fault", "panic", "devastated", "rough", "overwhelmed", "cancel", "hate", "issue", "exhausted", "late", "error", "bug",
+    "bekar", "bakwas", "kharab", "gussa", "pareshan", "mushkil", "bura", "barbad", "delay", "fraud", "dhoka", "chinta",
+    "खराब", "गुस्सा", "परेशानी", "मुश्किल", "घटिया", "शिकायत", "असुविधा", "तनाव", "चिंता"
+  ];
 
   const predictions = [];
   const scores = [];
@@ -894,7 +926,9 @@ function runStandaloneAnalysis(rawText, tau) {
       text = p.slice(1).join(":").trim();
     }
 
-    const lower = text.toLowerCase();
+    // Collapse character elongations (e.g. boooohot -> bohot, achhaaaa -> achha)
+    const collapsed = text.replace(/([a-zA-Z\u0900-\u097F])\1{2,}/g, "$1$1");
+    const lower = collapsed.toLowerCase();
     let posCount = 0;
     let negCount = 0;
     posWords.forEach(w => { if (lower.includes(w)) posCount++; });

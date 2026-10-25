@@ -90,11 +90,35 @@ SAMPLE_PRESETS = {
         "Ross: Yeah, I'm completely devastated. I have no idea what to do.\n"
         "Joey: Come on, Ross. We're gonna order pizza, hang out, and talk through it.\n"
         "Ross: Thanks Joey. You're a true friend."
+    ),
+    "Sample 4: WhatsApp Hinglish (Customer Escalation & Fix)": (
+        "Customer: Hello, mera order #98211 abhi tak deliver nahi hua\n"
+        "Support: Sir, let me check the tracking status for your order\n"
+        "Customer: Bhai 4 din se delay chal raha hai, bohot bekar service hai tumhari!\n"
+        "Support: Hum samajh sakte hain aapki pareshani, delivery partner se baat ho rahi hai\n"
+        "Customer: Mera paisa barbad ho gaya, urgent tha ye parcel!\n"
+        "Support: Sir package dispatch ho chuka hai aur agle 2 ghante me aapko mil jayega\n"
+        "Customer: Pakka mil jayega na? Mujhe aaj hi chahiye tha\n"
+        "Support: Haanji sir, guaranteed aaj deliver hoga. Asuvidha ke liye maafi\n"
+        "Customer: Chalo theek hai, bohot bohot shukriya aapki madad ke liye\n"
+        "Support: Thank you for contacting us, aapka din shubh ho!"
+    ),
+    "Sample 5: WhatsApp Hindi Devanagari (पारिवारिक वार्तालाप)": (
+        "अमित: नमस्ते सभी को, क्या इस रविवार को मिलने की योजना बन सकती है?\n"
+        "नेहा: हाँ ज़रूर, बहुत दिनों से सब मिले नहीं हैं!\n"
+        "रोहन: मौसम बहुत खराब रहने वाला है, भारी बारिश की चेतावनी आई है\n"
+        "अमित: अरे यार, फिर बाहर जाना बहुत मुश्किल और परेशानी भरा होगा\n"
+        "नेहा: चिंता मत करो, हम सब घर पर ही दोपहर का भोजन रख सकते हैं\n"
+        "रोहन: यह तो बहुत ही बढ़िया और सुरक्षित विचार है!\n"
+        "अमित: सबको बहुत खुशी होगी, मैं गरमा-गरम नाश्ता लेकर आऊँगा\n"
+        "नेहा: धन्यवाद भाई, रविवार को दोपहर में मिलते हैं"
     )
 }
 # Aliases for UI dropdown compatibility
 SAMPLE_PRESETS["Sample 2: WhatsApp Incident & Resolution"] = SAMPLE_PRESETS["Sample 2: WhatsApp Chat Format"]
 SAMPLE_PRESETS["Sample 3: MELD Dialogue (Empathy & Support)"] = SAMPLE_PRESETS["Sample 3: MELD Friends Dialogue"]
+SAMPLE_PRESETS["Sample 4: WhatsApp Hinglish Resolution"] = SAMPLE_PRESETS["Sample 4: WhatsApp Hinglish (Customer Escalation & Fix)"]
+SAMPLE_PRESETS["Sample 5: WhatsApp Hindi (Devanagari)"] = SAMPLE_PRESETS["Sample 5: WhatsApp Hindi Devanagari (पारिवारिक वार्तालाप)"]
 
 
 class SentimentTrajectoryDesktopApp:
@@ -114,6 +138,11 @@ class SentimentTrajectoryDesktopApp:
 
         # Theme state (Default: Light for clear productivity)
         self.current_theme: str = "light"
+
+        # Indic & Devanagari Unicode Font Stack
+        import matplotlib as mpl
+        mpl.rcParams["font.sans-serif"] = ["Nirmala UI", "Mangal", "Segoe UI", "DejaVu Sans"]
+        mpl.rcParams["axes.unicode_minus"] = False
 
         # Internal Analysis & Dataset State
         self.analyzer: Optional[ConversationSentimentAnalyzer] = None
@@ -641,9 +670,9 @@ class SentimentTrajectoryDesktopApp:
                     except Exception:
                         self.analyzer = ConversationSentimentAnalyzer(model_type="baseline")
 
-                results = self.analyzer.analyze_conversation(self.current_df)
+                results = self.analyzer.analyze_conversation(self.current_df, model_type="auto")
                 self.current_analysis_result = results
-                self.current_df = results["annotated_df"]
+                self.current_df = results.get("annotated_df", results.get("predictions_df"))
                 self.current_stats = results["trajectory_stats"]
 
                 self.root.after(0, self._on_analysis_complete)

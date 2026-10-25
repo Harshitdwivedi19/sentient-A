@@ -1,0 +1,12 @@
+{
+  "model_name": "Hindi_Hinglish_Hybrid_TFIDF",
+  "context_window_k": 3,
+  "classes": [
+    "negative",
+    "neutral",
+    "positive"
+  ],
+  "features": "word(1,2) + char_wb(2,5)",
+  "train_samples": 157,
+  "val_samples": 27
+}

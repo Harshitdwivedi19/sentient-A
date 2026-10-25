@@ -1,0 +1,28 @@
+dialogue_id,turn_id,speaker,text,sentiment,label,pred_label,pred_sentiment,prob_negative,prob_neutral,prob_positive
+3,0,Lead,Kya kisi ne payment gateway alerts check kiye?,neutral,1,0,negative,0.4505888563774061,0.4123518448927332,0.13705929872986072
+3,1,Dev1,"Haan, production me transactions fail ho rahe hain",negative,0,0,negative,0.6893409901673256,0.20754655756345594,0.10311245226921834
+3,2,Lead,"Ye toh bohot badi problem hai, error log kya bol raha hai?",negative,0,0,negative,0.6911139408898318,0.2286604845853078,0.08022557452486047
+3,3,Dev2,"Redis connection pool exhaust ho gaya hai, leak lag raha hai",negative,0,0,negative,0.6102737085457437,0.2861605208701897,0.10356577058406655
+3,4,Lead,Main config update kar raha hu aur pool size badha raha hu,neutral,1,1,neutral,0.37817739327483174,0.4270857821655594,0.19473682455960883
+3,5,Dev1,"Patch deploy ho gaya hai, verification start karo",neutral,1,1,neutral,0.20902737432040477,0.5196720685030031,0.2713005571765922
+3,6,Dev2,"Ab payments successfully process ho rahe hain, error rate 0 ho gaya",positive,2,2,positive,0.14505055339697884,0.3078584776997934,0.5470909689032277
+3,7,Lead,Shandar kaam team! Ekdum timely aur badiya fix kiya sabne,positive,2,2,positive,0.10913107301081199,0.20762172433679213,0.6832472026523959
+10,0,Manager,"Client demo kal subah hai, sprint deliverables ready hain?",neutral,1,1,neutral,0.4005760832692439,0.450550857864255,0.14887305886650104
+10,1,Developer,"Nahi sir, login module abhi bhi test cases me fail ho raha hai",negative,0,0,negative,0.6759525197604972,0.2338774463984678,0.09017003384103496
+10,2,QA,"UI layout mobile view pe pura toot raha hai, bohot bug hain",negative,0,0,negative,0.7022776686947874,0.199075494636405,0.09864683666880762
+10,3,Manager,"Yeh accept nahi hoga, time bohot kam bacha hai aur stress badh raha hai",negative,0,0,negative,0.6446182947837517,0.21782808794725803,0.13755361726899032
+10,4,Developer,Main overnight baithke CSS aur authentication pipeline fix kar dunga,neutral,1,0,negative,0.4304861361862834,0.2823343275286732,0.28717953628504334
+10,5,QA,"Subah 6 baje ka build ekdum stable hai, saare critical tests pass ho gaye!",positive,2,2,positive,0.19566891572303013,0.2464821232219791,0.5578489610549908
+10,6,Manager,"Superb work! Client ne demo approve kar diya hai, sabko shabash",positive,2,2,positive,0.12916931314224622,0.22100867644276248,0.6498220104149913
+22,0,क्रेता,पैकेजिंग फटी हुई थी और उत्पाद क्षतिग्रस्त निकला,negative,0,1,neutral,0.28579826586957424,0.4062953535152492,0.30790638061517656
+22,1,कंपनी,"असुविधा के लिए क्षमा, हम नया उत्पाद आज ही भेज रहे हैं",positive,2,1,neutral,0.2440152179331692,0.401326397493822,0.3546583845730089
+22,2,क्रेता,"नया उत्पाद बिल्कुल सही स्थिति में मिल गया, बहुत आभार",positive,2,2,positive,0.25602733458763116,0.36378161292872074,0.38019105248364804
+23,0,क्रेता,paikejing phati hui thi aur utpad kshatigrast nikala,negative,0,1,neutral,0.2829850432943505,0.38113663348741017,0.3358783232182394
+23,1,कंपनी,"asuvidha ke lie kshama, ham naya utpad aj hi bhej rahe hain",positive,2,2,positive,0.2232469156821205,0.32954227430427924,0.4472108100136003
+23,2,क्रेता,"naya utpad bilkul sahi sthiti men mil gaya, bahut abhar",positive,2,2,positive,0.21473177695651266,0.283428272115331,0.5018399509281563
+32,0,Customer,"Mera monthly e-statement password protected hai, password kya hai?",neutral,1,1,neutral,0.14726470986032664,0.6939800683406306,0.15875522179904275
+32,1,Helpdesk,Password aapke date of birth aur phone number ke last 4 digits hain,neutral,1,1,neutral,0.13400393354742368,0.6149876401415588,0.25100842631101744
+32,2,Customer,"Document open ho gaya hai, accurate information ke liye thanks",positive,2,2,positive,0.13767348227911083,0.4274270739747112,0.434899443746178
+35,0,छात्र,pathyakram ki samagri bahut kathin aur aspasht thi,negative,0,0,negative,0.3635702952587284,0.295636450906607,0.3407932538346646
+35,1,शिक्षक,hamane atirikt spashtikaran vidiyo aur nots apalod kie hain,neutral,1,2,positive,0.2740621434902983,0.3116387466178985,0.4142991098918032
+35,2,छात्र,"ab sabhi avadharanaen bahut achchhe se samajh a rahi hain, dhanyavad",positive,2,2,positive,0.2604233949129231,0.2667727100184687,0.4728038950686082

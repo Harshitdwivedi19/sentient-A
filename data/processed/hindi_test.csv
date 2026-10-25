@@ -1,0 +1,31 @@
+dialogue_id,turn_id,speaker,text,sentiment,label
+7,0,User,"Mera monthly bill double aaya hai is baar, check karo",negative,0
+7,1,Agent,"Namaste, main aapka account verify kar raha hu",neutral,1
+7,2,User,Bina bataye international roaming pack kaise activate kar diya?,negative,0
+7,3,User,"Yeh fraud hai, main consumer court me complaint karunga!",negative,0
+7,4,Agent,"Sir, yeh system glitch se activate hua tha. Hum turant reverse kar rahe hain",neutral,1
+7,5,Agent,Aapka excess amount refund ho chuka hai aur new bill update kar diya hai,positive,2
+7,6,User,Ab bill theek dikh raha hai. Quick resolution ke liye thanks,positive,2
+7,7,Agent,Aapki sahayata karke khushi hui. Have a good day!,positive,2
+14,0,उपयोगकर्ता,"मेरे खाने के ऑर्डर में मुख्य मिठाई गायब है, ऑर्डर अधूरा भेजा है",negative,0
+14,1,एजेंट,"नमस्ते, असुविधा के लिए हम माफ़ी चाहते हैं",neutral,1
+14,2,उपयोगकर्ता,"मेहमान घर आए हुए हैं और खाना अधूरा है, बहुत गुस्सा आ रहा है",negative,0
+14,3,एजेंट,हमने तुरंत रेस्टोरेंट से बात की है और मिठाई का दूसरा पैकेट 15 मिनट में आपके पास पहुँचेगा,positive,2
+14,4,एजेंट,साथ ही आपके वॉलेट में 100 रुपये का कूपन क्रेडिट कर दिया गया है,positive,2
+14,5,उपयोगकर्ता,"मिठाई समय पर आ गई, आपकी सेवा और समाधान सच में बहुत सराहनीय है",positive,2
+18,0,निवासी,सोसाइटी में पिछले 3 घंटे से पानी की सप्लाई पूरी तरह बंद है,negative,0
+18,1,सचिव,"मुख्य पाइपलाइन में रिसाव हुआ था, प्लंबर मरम्मत का काम कर रहे हैं",neutral,1
+18,2,निवासी,काम कब तक पूरा होगा? दैनिक कार्य रुक गए हैं,neutral,1
+18,3,सचिव,काम पूरा हो चुका है और वाटर पंप शुरू कर दिया गया है,positive,2
+18,4,निवासी,"पानी आ गया है, त्वरित कार्रवाई के लिए धन्यवाद",positive,2
+20,0,Tester,App restart hone par crash kar rahi hai,negative,0
+20,1,Dev,Null pointer exception aa raha hai memory leaks ke sath,negative,0
+20,2,Dev,Fix commit kar diya hai branch me,neutral,1
+20,3,Tester,"Build test kiya, ab crash issue solve ho gaya hai",positive,2
+20,4,Manager,"Very good work, ab release ready hai",positive,2
+28,0,उपभोक्ता,"इंटरनेट की गति बहुत धीमी है, वीडियो बफर हो रही है",negative,0
+28,1,इंजीनियर,राउटर को रीबूट करके सिग्नल चेक करें,neutral,1
+28,2,उपभोक्ता,"स्पीड अब 200 Mbps आ रही है, सब कुछ एकदम सुचारू है",positive,2
+38,0,Member,Gym ke annual membership me trainer facility included hai kya?,neutral,1
+38,1,Reception,"Haanji, 3 months complimentary personal training session milenge",positive,2
+38,2,Member,Great package! Main aaj hi membership activate karunga,positive,2

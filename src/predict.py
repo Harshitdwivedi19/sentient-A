@@ -38,6 +38,7 @@ from src.context import build_context_representations
 from src.trajectory import compute_trajectory_statistics
 from src.explain import generate_conversation_explanation
 from src.whatsapp_parser import parse_whatsapp_file, parse_whatsapp_raw_lines, sessionize_messages
+from src.hinglish_normalizer import normalize_whatsapp_text, detect_batch_language, detect_language_mode
 
 logger = logging.getLogger(__name__)
 
@@ -82,6 +83,16 @@ class ConversationSentimentAnalyzer:
             classifier = joblib.load(clf_path)
             self.loaded_models["baseline"] = {"vectorizer": vectorizer, "classifier": classifier}
 
+        elif model_type == "hindi_baseline":
+            model_dir = models_base / "hindi_baseline_tfidf"
+            vec_path = model_dir / "tfidf_vectorizer.joblib"
+            clf_path = model_dir / "logistic_regression.joblib"
+            if not vec_path.exists() or not clf_path.exists():
+                raise FileNotFoundError(f"Hindi TF-IDF artifacts missing at {model_dir}. Train hindi_baseline first.")
+            vectorizer = joblib.load(vec_path)
+            classifier = joblib.load(clf_path)
+            self.loaded_models["hindi_baseline"] = {"vectorizer": vectorizer, "classifier": classifier}
+
         elif model_type in ["roberta_independent", "roberta_context"]:
             model_dir = models_base / model_type
             if not model_dir.exists() or not (model_dir / "model.safetensors").exists():
@@ -125,20 +136,47 @@ class ConversationSentimentAnalyzer:
         model_type: Optional[str] = None,
         context_window: int = 3
     ) -> pd.DataFrame:
-        """Run batch sentiment inference on a DataFrame."""
-        model_to_use = model_type or self.active_model_type
-        self._load_model(model_to_use)
-
+        """Run batch sentiment inference on a DataFrame with auto language detection."""
         df_out = df.copy()
         if "dialogue_id" not in df_out.columns:
             df_out["dialogue_id"] = 0
         if "turn_id" not in df_out.columns:
             df_out["turn_id"] = np.arange(len(df_out))
 
+        # Detect language across conversation turns
+        texts = df_out["text"].astype(str).tolist()
+        detected_lang = detect_batch_language(texts)
+        df_out["detected_language"] = [detect_language_mode(t) for t in texts]
+
+        # Automatic model routing for Hindi/Hinglish
+        requested_model = model_type or self.active_model_type
+        if requested_model in [None, "auto", "default"]:
+            if detected_lang in ["hi_deva", "hi_roman"]:
+                model_to_use = "hindi_baseline"
+            else:
+                model_to_use = self.active_model_type if self.active_model_type != "hindi_baseline" else "baseline"
+        else:
+            # If user explicitly picked baseline or roberta, check if text is Hindi/Hinglish
+            if requested_model == "auto" or (detected_lang in ["hi_deva", "hi_roman"] and requested_model in ["baseline", "hindi_baseline"]):
+                model_to_use = "hindi_baseline"
+            else:
+                model_to_use = requested_model
+
+        self._load_model(model_to_use)
+
         if model_to_use == "baseline":
             vectorizer = self.loaded_models["baseline"]["vectorizer"]
             clf = self.loaded_models["baseline"]["classifier"]
             X = vectorizer.transform(df_out["text"])
+            probs = clf.predict_proba(X)
+
+        elif model_to_use == "hindi_baseline":
+            vectorizer = self.loaded_models["hindi_baseline"]["vectorizer"]
+            clf = self.loaded_models["hindi_baseline"]["classifier"]
+            clean_df = df_out.copy()
+            clean_df["text"] = clean_df["text"].astype(str).apply(normalize_whatsapp_text)
+            df_ctx = build_context_representations(clean_df, window_size=context_window)
+            X = vectorizer.transform(df_ctx["context_text"])
             probs = clf.predict_proba(X)
 
         elif model_to_use == "roberta_independent":
@@ -211,10 +249,14 @@ class ConversationSentimentAnalyzer:
         trajectory_stats = compute_trajectory_statistics(preds_df, turning_point_threshold=turning_point_threshold)
         explanation = generate_conversation_explanation(preds_df, trajectory_stats)
 
+        detected_lang = preds_df["detected_language"].iloc[0] if "detected_language" in preds_df.columns and not preds_df.empty else "en"
+
         return {
             "success": True,
             "model_used": model_type or self.active_model_type,
+            "detected_language": detected_lang,
             "predictions_df": preds_df,
+            "annotated_df": preds_df,
             "trajectory_stats": trajectory_stats,
             "explanation": explanation
         }
